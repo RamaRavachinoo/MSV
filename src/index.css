@@ -1,28 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-    body {
-        background-color: #fff1f2;
-        /* romantic-50 */
-        color: #1f2937;
-        /* gray-800 */
-        font-family: 'Inter', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+/* Custom theme colors for Tailwind v4 */
+@theme {
+    --color-romantic-50: #fff1f2;
+    --color-romantic-100: #ffe4e6;
+    --color-romantic-200: #fecdd3;
+    --color-romantic-300: #fda4af;
+    --color-romantic-400: #fb7185;
+    --color-romantic-500: #f43f5e;
+    --color-romantic-600: #e11d48;
+    --color-romantic-700: #be123c;
+    --color-romantic-800: #9f1239;
+    --color-romantic-900: #881337;
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family: 'Playfair Display', serif;
-        color: #881337;
-        /* romantic-900 */
-    }
+    --color-pastel-pink: #FFD1DC;
+    --color-pastel-blue: #AEC6CF;
+    --color-pastel-purple: #B39EB5;
+    --color-pastel-green: #77DD77;
+    --color-pastel-yellow: #FDFD96;
+
+    --font-sans: 'Inter', sans-serif;
+    --font-serif: 'Playfair Display', serif;
+
+    --animate-spin-slow: spin 3s linear infinite;
+    --animate-bounce-slow: bounce 2s infinite;
+    --animate-float: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+body {
+    background-color: var(--color-romantic-50);
+    color: #1f2937;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    color: var(--color-romantic-900);
 }
