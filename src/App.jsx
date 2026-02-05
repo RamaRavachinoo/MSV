@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import RoulettePage from './pages/RoulettePage';
 import GalleryPage from './pages/GalleryPage';
 import ReasonsPage from './pages/ReasonsPage';
+import ExpensesPage from './pages/ExpensesPage';
 
 // Placeholder pages to prevent errors before they are built
 const Placeholder = ({ title }) => (
@@ -23,6 +24,7 @@ function App() {
           <Route path="reasons" element={<ReasonsPage />} />
           <Route path="roulette" element={<RoulettePage />} />
           <Route path="gallery" element={<GalleryPage />} />
+          <Route path="expenses" element={<ExpensesPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
