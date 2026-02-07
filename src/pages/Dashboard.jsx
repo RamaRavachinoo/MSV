@@ -1,10 +1,87 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Heart, Calendar, Clock } from 'lucide-react';
 import TimeTogether from '../components/timer/TimeTogether';
+import { supabase } from '../lib/supabase';
+import { photoDescriptions } from '../data/photoDescriptions';
+import { differenceInDays, parseISO } from 'date-fns';
+
+const EVENT_ICONS = {
+    date: '❤️',
+    anniversary: '📅',
+    trip: '✈️',
+    birthday: '🎂',
+    other: '📌'
+};
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const [randomPhoto, setRandomPhoto] = useState(null);
+    const [nextEvent, setNextEvent] = useState(null);
+    const [daysUntil, setDaysUntil] = useState(null);
+
+    useEffect(() => {
+        fetchRandomPhoto();
+        fetchNextEvent();
+    }, []);
+
+    const fetchRandomPhoto = async () => {
+        try {
+            if (!supabase) return;
+            const { data } = await supabase.storage.from('photos')
+                .list('', { sortBy: { column: 'created_at', order: 'desc' } });
+
+            if (data && data.length > 0) {
+                const validPhotos = data.filter(f => f.name !== '.emptyFolderPlaceholder');
+                if (validPhotos.length === 0) return;
+                const randomFile = validPhotos[Math.floor(Math.random() * validPhotos.length)];
+                const { data: urlData } = supabase.storage.from('photos').getPublicUrl(randomFile.name);
+                setRandomPhoto({
+                    url: urlData.publicUrl,
+                    description: photoDescriptions[randomFile.name] || 'Uno de nuestros recuerdos'
+                });
+            }
+        } catch (e) {
+            console.error('Error fetching random photo:', e);
+        }
+    };
+
+    const fetchNextEvent = async () => {
+        try {
+            if (!supabase) return;
+            const { data } = await supabase.from('events').select('*');
+            if (!data || data.length === 0) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const upcoming = data.map(e => {
+                const eDate = parseISO(e.event_date);
+
+                if (e.recurrence === 'yearly') {
+                    let next = new Date(today.getFullYear(), eDate.getMonth(), eDate.getDate());
+                    if (next < today) next.setFullYear(next.getFullYear() + 1);
+                    return { ...e, nextDate: next };
+                }
+                if (e.recurrence === 'monthly') {
+                    let next = new Date(today.getFullYear(), today.getMonth(), eDate.getDate());
+                    if (next < today) next.setMonth(next.getMonth() + 1);
+                    return { ...e, nextDate: next };
+                }
+                return { ...e, nextDate: eDate };
+            })
+                .filter(e => e.nextDate >= today)
+                .sort((a, b) => a.nextDate - b.nextDate);
+
+            if (upcoming.length > 0) {
+                setNextEvent(upcoming[0]);
+                setDaysUntil(differenceInDays(upcoming[0].nextDate, today));
+            }
+        } catch (e) {
+            console.error('Error fetching next event:', e);
+        }
+    };
 
     return (
         <div className="space-y-8 pt-4">
@@ -43,6 +120,48 @@ const Dashboard = () => {
             >
                 <TimeTogether />
             </motion.div>
+
+            {/* Random Photo of the Day */}
+            {randomPhoto && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="glass-card rounded-3xl overflow-hidden cursor-pointer"
+                    onClick={() => navigate('/gallery')}
+                >
+                    <img
+                        src={randomPhoto.url}
+                        alt="Recuerdo"
+                        className="w-full h-48 object-cover"
+                    />
+                    <div className="p-4">
+                        <p className="text-xs text-romantic-400 uppercase tracking-widest font-bold mb-1">Recuerdo del Día</p>
+                        <p className="font-serif text-gray-800 text-sm leading-relaxed">{randomPhoto.description}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Next Upcoming Event */}
+            {nextEvent && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="bg-gradient-to-r from-romantic-100 to-purple-100 p-4 rounded-2xl flex items-center gap-4 cursor-pointer border border-romantic-200/50"
+                    onClick={() => navigate('/calendar')}
+                >
+                    <div className="text-3xl">{EVENT_ICONS[nextEvent.type] || '📌'}</div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs text-romantic-500 font-bold uppercase tracking-wider">Próximo evento</p>
+                        <p className="font-serif font-bold text-gray-800 truncate">{nextEvent.title}</p>
+                    </div>
+                    <div className="flex flex-col items-center bg-white/60 backdrop-blur-sm px-3 py-2 rounded-xl">
+                        <span className="text-2xl font-bold text-romantic-600">{daysUntil}</span>
+                        <span className="text-xs text-gray-500">{daysUntil === 1 ? 'día' : 'días'}</span>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Quick Access Grid */}
             <div className="grid grid-cols-2 gap-4">
@@ -84,12 +203,12 @@ const Dashboard = () => {
                 />
                 <QuickCard
                     emoji="💌"
-                    title="Razones"
-                    subtitle="Por qué te amo"
+                    title="Mi Carta"
+                    subtitle="Algo especial para vos"
                     delay={0.5}
                     color="bg-purple-100/40"
                     borderColor="border-purple-200/50"
-                    onClick={() => navigate('/reasons')}
+                    onClick={() => navigate('/love-letter')}
                 />
                 <QuickCard
                     emoji="🌎"

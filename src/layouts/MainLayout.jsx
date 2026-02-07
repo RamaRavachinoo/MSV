@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Heart, Home, Gift, Star, Calendar } from 'lucide-react';
+import { Mail, Home, Gift, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
@@ -10,7 +10,7 @@ const MainLayout = () => {
     // Bottom Navigation Items
     const navItems = [
         { icon: Home, label: 'Inicio', path: '/' },
-        { icon: Heart, label: 'Razones', path: '/reasons' },
+        { icon: Mail, label: 'Carta', path: '/love-letter' },
         { icon: Gift, label: 'Ruleta', path: '/roulette' },
         { icon: Star, label: 'Fotos', path: '/gallery' },
     ];

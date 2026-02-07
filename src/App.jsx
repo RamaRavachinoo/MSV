@@ -11,6 +11,7 @@ import BucketListPage from './pages/BucketListPage';
 import ExpensesPage from './pages/ExpensesPage';
 import MemoryBookPage from './pages/MemoryBookPage';
 import CalendarPage from './pages/CalendarPage';
+import LoveLetterPage from './pages/LoveLetterPage';
 import LoginPage from './pages/LoginPage';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
               <Route path="expenses" element={<ExpensesPage />} />
               <Route path="memories" element={<MemoryBookPage />} />
               <Route path="calendar" element={<CalendarPage />} />
+              <Route path="love-letter" element={<LoveLetterPage />} />
             </Route>
           </Route>
         </Routes>

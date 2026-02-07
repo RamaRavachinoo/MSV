@@ -4,12 +4,14 @@ import { Gift, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 
 const COUPONS = [
-    { id: 1, text: "Cena Romántica", color: "#fca5a5" }, // red-300
-    { id: 2, text: "Masajes (30 min)", color: "#93c5fd" }, // blue-300
-    { id: 3, text: "Noche de Pelis", color: "#fcd34d" }, // amber-300
-    { id: 4, text: "Desayuno en Cama", color: "#86efac" }, // green-300
-    { id: 5, text: "Vale por un BESO", color: "#f0abfc" }, // fuchsia-300
-    { id: 6, text: "Comodín: Tu Eliges", color: "#d8b4fe" }, // purple-300
+    { id: 1, text: "Noche de Hotel", color: "#fca5a5" },
+    { id: 2, text: "Masaje con Final Feliz", color: "#c4b5fd" },
+    { id: 3, text: "Desayuno en la Cama", color: "#fcd34d" },
+    { id: 4, text: "Sesión de Fotos Hot", color: "#f9a8d4" },
+    { id: 5, text: "Cena a la Luz de Velas", color: "#93c5fd" },
+    { id: 6, text: "Día de Spa en Casa", color: "#86efac" },
+    { id: 7, text: "Striptease Privado", color: "#fda4af" },
+    { id: 8, text: "Comodín: Vos Elegís", color: "#d8b4fe" },
 ];
 
 const CouponWheel = () => {
@@ -23,46 +25,23 @@ const CouponWheel = () => {
         setIsSpinning(true);
         setWinner(null);
 
-        // Random rotation between 5 and 10 full spins (1800 - 3600 deg) + random offset
         const randomOffset = Math.floor(Math.random() * 360);
         const totalRotation = 3600 + randomOffset;
 
-        // Calculate winner based on final rotation
-        // Each segment is 360 / 6 = 60 degrees.
-        // The pointer is usually at top (0 deg) or right. Let's assume top.
-        // Rotation is clockwise.
-        // If we rotate X degrees, the effective angle is X % 360.
-        // The slice at the top is the one that correlates to (360 - (X % 360)) basically.
-
-        // But let's just animate visual first
         await controls.start({
             rotate: totalRotation,
             transition: { duration: 5, ease: "circOut" }
         });
 
-        // Determine winner logic (simplified for visual match)
-        // Normalized angle (0-360)
         const finalAngle = totalRotation % 360;
         const segmentSize = 360 / COUPONS.length;
-        // Pointer is at TOP (let's say 0 degrees in CSS terms if we didn't rotate the container weirdly)
-        // If wheel rotates clockwise, the segment at 0 is the one that was at (360 - finalAngle).
         const winningIndex = Math.floor(((360 - finalAngle + segmentSize / 2) % 360) / segmentSize);
-        // Note: The math can be tricky depending on initial alignment. 
-        // Let's just pick a random winner via JS and force the rotation to land there?
-        // Easier: random index -> calculate rotation.
 
-        // RE-DOING LOGIC:
-        // Pick winner first:
-        /*
-        const winnerIndex = Math.floor(Math.random() * COUPONS.length);
-        const segmentAngle = 360 / COUPONS.length;
-        const targetAngle = 360 * 10 - (winnerIndex * segmentAngle); // 10 spins minus position
-        */
-
-        // For now, let's just use the calculated one from the random spin to be "fair" physically
         setWinner(COUPONS[winningIndex]);
         setIsSpinning(false);
     };
+
+    const sliceAngle = 360 / COUPONS.length;
 
     return (
         <div className="flex flex-col items-center justify-center p-4">
@@ -73,7 +52,7 @@ const CouponWheel = () => {
 
             <div className="relative w-64 h-64 md:w-80 md:h-80 mb-8">
                 {/* Pointer */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10 text-romantic-600">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10 text-romantic-600 text-2xl">
                     ▼
                 </div>
 
@@ -83,37 +62,11 @@ const CouponWheel = () => {
                     animate={controls}
                     style={{ transformOrigin: 'center' }}
                 >
-                    {COUPONS.map((coupon, index) => {
-                        const rotation = (360 / COUPONS.length) * index;
-                        return (
-                            <div
-                                key={coupon.id}
-                                className="absolute w-1/2 h-full top-0 left-1/2 origin-left flex items-center justify-center"
-                                style={{
-                                    transform: `rotate(${rotation}deg)`,
-                                    backgroundColor: coupon.color,
-                                    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' // Trying to make slices? 
-                                    // CSS slices are hard with just divs.
-                                    // Better approach: Conic gradient or SVG.
-                                }}
-                            >
-                                {/* This div method is flawy for slices.
-                                    Let's use a simpler Conic Gradient approach for the background,
-                                    and place text absolutely.
-                                */}
-                            </div>
-                        );
-                    })}
-
-                    {/* SVG Implementation is safer for Pie Chart look */}
                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                         {COUPONS.map((coupon, index) => {
-                            // Calculate SVG path for each slice
-                            const sliceAngle = 360 / COUPONS.length;
                             const startAngle = index * sliceAngle;
                             const endAngle = startAngle + sliceAngle;
 
-                            // Convert polar to cartesian
                             const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
                             const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
                             const x2 = 50 + 50 * Math.cos(Math.PI * endAngle / 180);
@@ -121,39 +74,54 @@ const CouponWheel = () => {
 
                             const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 0 1 ${x2} ${y2} Z`;
 
+                            const midAngle = startAngle + sliceAngle / 2;
+                            const textRadius = 33;
+                            const tx = 50 + textRadius * Math.cos(Math.PI * midAngle / 180);
+                            const ty = 50 + textRadius * Math.sin(Math.PI * midAngle / 180);
+
+                            // Split text into two lines if longer than 10 chars
+                            const words = coupon.text.split(' ');
+                            let line1 = '';
+                            let line2 = '';
+                            if (words.length <= 2) {
+                                line1 = words[0] || '';
+                                line2 = words.slice(1).join(' ');
+                            } else {
+                                const mid = Math.ceil(words.length / 2);
+                                line1 = words.slice(0, mid).join(' ');
+                                line2 = words.slice(mid).join(' ');
+                            }
+
                             return (
-                                <path
-                                    key={coupon.id}
-                                    d={pathData}
-                                    fill={coupon.color}
-                                    stroke="white"
-                                    strokeWidth="1"
-                                />
+                                <g key={coupon.id}>
+                                    <path
+                                        d={pathData}
+                                        fill={coupon.color}
+                                        stroke="white"
+                                        strokeWidth="0.5"
+                                    />
+                                    <text
+                                        x={tx}
+                                        y={ty}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        transform={`rotate(${midAngle + 90}, ${tx}, ${ty})`}
+                                        fontSize="3"
+                                        fontWeight="700"
+                                        fill="#1f2937"
+                                    >
+                                        <tspan x={tx} dy="-1.8">{line1}</tspan>
+                                        <tspan x={tx} dy="3.6">{line2}</tspan>
+                                    </text>
+                                </g>
                             );
                         })}
                     </svg>
-
-                    {/* Text overlays */}
-                    {COUPONS.map((coupon, index) => {
-                        const sliceAngle = 360 / COUPONS.length;
-                        const rotation = index * sliceAngle + sliceAngle / 2;
-                        return (
-                            <div
-                                key={coupon.id}
-                                className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none"
-                                style={{ transform: `rotate(${rotation}deg)` }}
-                            >
-                                <span className="text-xs font-bold text-gray-800 -translate-y-16 md:-translate-y-24 bg-white/70 px-2 py-1 rounded-full whitespace-nowrap">
-                                    {coupon.text}
-                                </span>
-                            </div>
-                        )
-                    })}
                 </motion.div>
 
                 {/* Center dot */}
-                <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 shadow-md z-10 flex items-center justify-center">
-                    <HeartIcon size={16} className="text-romantic-500" />
+                <div className="absolute top-1/2 left-1/2 w-10 h-10 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 shadow-lg z-10 flex items-center justify-center">
+                    <HeartIcon size={18} className="text-romantic-500" />
                 </div>
             </div>
 
@@ -184,7 +152,6 @@ const CouponWheel = () => {
     );
 };
 
-// Helper
 const HeartIcon = ({ className, size }) => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -200,6 +167,6 @@ const HeartIcon = ({ className, size }) => (
     >
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
     </svg>
-)
+);
 
 export default CouponWheel;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, TrendingUp, TrendingDown, DollarSign, PiggyBank, Target, Calendar, X, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const MOCK_TRANSACTIONS = [
     { id: 1, type: 'expense', amount: 15000, category: 'Cena Romántica 🍕', date: new Date().toISOString() },
@@ -369,8 +370,30 @@ const ExpensesPage = () => {
     );
 };
 
+const CHART_COLORS = ['#f43f5e', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#6366f1', '#14b8a6'];
+
 const ExpensesView = ({ transactions, income, expense, onEdit, onDelete }) => {
     const balance = income - expense;
+
+    const categoryData = useMemo(() => {
+        const grouped = {};
+        transactions.filter(t => t.type === 'expense').forEach(tx => {
+            const cat = tx.category || 'Otros';
+            grouped[cat] = (grouped[cat] || 0) + Number(tx.amount);
+        });
+        return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    }, [transactions]);
+
+    const monthlyData = useMemo(() => {
+        const months = {};
+        transactions.forEach(tx => {
+            const monthKey = format(new Date(tx.date), 'MMM', { locale: es });
+            if (!months[monthKey]) months[monthKey] = { month: monthKey, ingresos: 0, gastos: 0 };
+            if (tx.type === 'income') months[monthKey].ingresos += Number(tx.amount);
+            else months[monthKey].gastos += Number(tx.amount);
+        });
+        return Object.values(months);
+    }, [transactions]);
 
     return (
         <motion.div
@@ -413,6 +436,57 @@ const ExpensesView = ({ transactions, income, expense, onEdit, onDelete }) => {
                 </div>
             </div>
 
+            {/* Pie Chart - Expense Categories */}
+            {categoryData.length > 0 && (
+                <div className="bg-white p-5 rounded-3xl shadow-sm">
+                    <h3 className="text-gray-800 font-serif font-medium mb-4">Distribución de Gastos</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                            <Pie
+                                data={categoryData}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={45}
+                                outerRadius={80}
+                                paddingAngle={2}
+                            >
+                                {categoryData.map((_, index) => (
+                                    <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => `$${Number(value).toLocaleString()}`} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex flex-wrap gap-2 mt-3 justify-center">
+                        {categoryData.map((cat, i) => (
+                            <div key={cat.name} className="flex items-center gap-1.5 text-xs">
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                                <span className="text-gray-600">{cat.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Bar Chart - Income vs Expenses by Month */}
+            {monthlyData.length > 0 && (
+                <div className="bg-white p-5 rounded-3xl shadow-sm">
+                    <h3 className="text-gray-800 font-serif font-medium mb-4">Ingresos vs Gastos</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={monthlyData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                            <YAxis tick={{ fontSize: 10 }} width={50} />
+                            <Tooltip formatter={(value) => `$${Number(value).toLocaleString()}`} />
+                            <Bar dataKey="ingresos" fill="#10b981" radius={[4, 4, 0, 0]} name="Ingresos" />
+                            <Bar dataKey="gastos" fill="#f43f5e" radius={[4, 4, 0, 0]} name="Gastos" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
+
             {/* Transactions List */}
             <div>
                 <h3 className="text-gray-800 font-serif font-medium mb-3">Movimientos Recientes</h3>
@@ -433,14 +507,11 @@ const ExpensesView = ({ transactions, income, expense, onEdit, onDelete }) => {
                                     <span className={`font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-gray-800'}`}>
                                         {tx.type === 'income' ? '+' : '-'}${Number(tx.amount).toLocaleString()}
                                     </span>
-                                    {/* Action Buttons (Visible on hover or always on mobile if room) */}
                                     <div className="flex gap-1 ml-2">
                                         <button onClick={() => onEdit(tx)} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
-                                            {/* Edit Icon (Pencil) */}
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /></svg>
                                         </button>
                                         <button onClick={() => onDelete(tx.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                            {/* Trash Icon */}
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
                                         </button>
                                     </div>

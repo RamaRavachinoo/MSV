@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, X, Heart, Calendar as CalendarIcon, MapPin, Repeat } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, getDay, parseISO } from 'date-fns';
+import { ChevronLeft, ChevronRight, Plus, X, Heart, Calendar as CalendarIcon, MapPin, Repeat, Clock } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getDay, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { createPortal } from 'react-dom';
+
+const EVENT_TYPES = {
+    date: { label: 'Cita Romántica', color: 'bg-romantic-100 text-romantic-600', dotColor: 'bg-romantic-400', icon: <Heart size={16} /> },
+    anniversary: { label: 'Aniversario', color: 'bg-purple-100 text-purple-600', dotColor: 'bg-purple-400', icon: <CalendarIcon size={16} /> },
+    trip: { label: 'Viaje', color: 'bg-blue-100 text-blue-600', dotColor: 'bg-blue-400', icon: <MapPin size={16} /> },
+    birthday: { label: 'Cumpleaños', color: 'bg-yellow-100 text-yellow-600', dotColor: 'bg-yellow-400', icon: <Heart size={16} /> },
+    other: { label: 'Otro', color: 'bg-gray-100 text-gray-600', dotColor: 'bg-gray-400', icon: <div className="w-2 h-2 rounded-full bg-gray-400" /> }
+};
 
 const CalendarPage = () => {
     const { user } = useAuth();
@@ -14,27 +22,23 @@ const CalendarPage = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState('month');
 
-    // New Event State
     const [newEvent, setNewEvent] = useState({
         title: '',
         date: format(new Date(), 'yyyy-MM-dd'),
-        type: 'date', // date, anniversary, trip, birthday
-        recurrence: 'none', // none, monthly, yearly
+        type: 'date',
+        recurrence: 'none',
         description: ''
     });
 
     useEffect(() => {
         fetchEvents();
-    }, [currentDate]); // Refetch when changing months (could optimize to fetch range)
+    }, [currentDate]);
 
     const fetchEvents = async () => {
         try {
-            // Fetch all events for now (MVP optimization later)
-            const { data, error } = await supabase
-                .from('events')
-                .select('*');
-
+            const { data, error } = await supabase.from('events').select('*');
             if (error) throw error;
             setEvents(data || []);
         } catch (error) {
@@ -57,7 +61,6 @@ const CalendarPage = () => {
                 description: newEvent.description,
                 created_by: user?.id
             }]);
-
             if (error) throw error;
 
             fetchEvents();
@@ -78,48 +81,102 @@ const CalendarPage = () => {
         } catch (e) { console.error(e); }
     };
 
-    // Calendar Generation Logic
+    // Calendar Generation
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const emptyStartDays = Array(getDay(monthStart)).fill(null);
 
-    // Fill empty spots at start of month
-    const startDay = getDay(monthStart); // 0 (Sun) to 6 (Sat)
-    const emptyStartDays = Array(startDay).fill(null);
+    // Week view
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
+    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
+    const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-    // Helpers
     const isToday = (day) => isSameDay(day, new Date());
     const isSelected = (day) => isSameDay(day, selectedDate);
 
     const getEventsForDay = (day) => {
         return events.filter(e => {
             const eDate = parseISO(e.event_date);
-
-            // Exact checks
-            if (e.recurrence === 'none') {
-                return isSameDay(eDate, day);
-            }
-            // Monthly checks (same day number)
-            if (e.recurrence === 'monthly') {
-                return eDate.getDate() === day.getDate();
-            }
-            // Yearly checks (same month and day)
-            if (e.recurrence === 'yearly') {
-                return eDate.getDate() === day.getDate() && eDate.getMonth() === day.getMonth();
-            }
+            if (e.recurrence === 'none') return isSameDay(eDate, day);
+            if (e.recurrence === 'monthly') return eDate.getDate() === day.getDate();
+            if (e.recurrence === 'yearly') return eDate.getDate() === day.getDate() && eDate.getMonth() === day.getMonth();
             return false;
         });
     };
 
-    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+    // Next upcoming event
+    const nextUpcoming = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    const EVENT_TYPES = {
-        date: { label: 'Cita Romántica', color: 'bg-romantic-100 text-romantic-600', icon: <Heart size={16} /> },
-        anniversary: { label: 'Aniversario', color: 'bg-purple-100 text-purple-600', icon: <CalendarIcon size={16} /> },
-        trip: { label: 'Viaje', color: 'bg-blue-100 text-blue-600', icon: <MapPin size={16} /> },
-        birthday: { label: 'Cumpleaños', color: 'bg-yellow-100 text-yellow-600', icon: <Heart size={16} /> },
-        other: { label: 'Otro', color: 'bg-gray-100 text-gray-600 scale-75', icon: <div className="w-2 h-2 rounded-full bg-gray-400" /> }
+        const upcoming = events.map(e => {
+            const eDate = parseISO(e.event_date);
+            if (e.recurrence === 'yearly') {
+                let next = new Date(today.getFullYear(), eDate.getMonth(), eDate.getDate());
+                if (next < today) next.setFullYear(next.getFullYear() + 1);
+                return { ...e, nextDate: next };
+            }
+            if (e.recurrence === 'monthly') {
+                let next = new Date(today.getFullYear(), today.getMonth(), eDate.getDate());
+                if (next < today) next.setMonth(next.getMonth() + 1);
+                return { ...e, nextDate: next };
+            }
+            return { ...e, nextDate: eDate };
+        })
+            .filter(e => e.nextDate >= today)
+            .sort((a, b) => a.nextDate - b.nextDate);
+
+        return upcoming[0] || null;
+    }, [events]);
+
+    const daysUntilNext = nextUpcoming ? differenceInDays(nextUpcoming.nextDate, new Date()) : null;
+
+    // Navigation
+    const goForward = () => {
+        if (viewMode === 'month') setCurrentDate(addMonths(currentDate, 1));
+        else setSelectedDate(addWeeks(selectedDate, 1));
+    };
+    const goBack = () => {
+        if (viewMode === 'month') setCurrentDate(subMonths(currentDate, 1));
+        else setSelectedDate(subWeeks(selectedDate, 1));
+    };
+
+    const renderDayCell = (day) => {
+        const dayEvents = getEventsForDay(day);
+        const hasEvent = dayEvents.length > 0;
+
+        return (
+            <div key={day.toString()} className="flex flex-col items-center gap-1 relative">
+                <button
+                    onClick={() => setSelectedDate(day)}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
+                        ${isToday(day) ? 'bg-romantic-100 text-romantic-600 ring-2 ring-romantic-200' : ''}
+                        ${isSelected(day) ? 'bg-romantic-500 text-white shadow-lg shadow-romantic-300' : 'text-gray-700 hover:bg-gray-50'}
+                    `}
+                >
+                    {format(day, 'd')}
+                </button>
+                {/* Colored event dots */}
+                {hasEvent && !isSelected(day) && (
+                    <div className="absolute -bottom-1 flex gap-0.5">
+                        {dayEvents.slice(0, 3).map((e, i) => (
+                            <div
+                                key={i}
+                                className={`w-1.5 h-1.5 rounded-full ${EVENT_TYPES[e.type]?.dotColor || 'bg-gray-400'}`}
+                            />
+                        ))}
+                    </div>
+                )}
+                {hasEvent && isSelected(day) && (
+                    <div className="absolute -bottom-1 flex gap-0.5">
+                        {dayEvents.slice(0, 3).map((_, i) => (
+                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-white" />
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -127,7 +184,7 @@ const CalendarPage = () => {
             {/* Header */}
             <div className="pt-8 pb-6 flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-serif text-romantic-900">Fechas Importantes 📅</h1>
+                    <h1 className="text-3xl font-serif text-romantic-900">Fechas Importantes</h1>
                     <p className="text-sm text-romantic-600">Nuestros momentos especiales</p>
                 </div>
                 <button
@@ -138,15 +195,59 @@ const CalendarPage = () => {
                 </button>
             </div>
 
+            {/* Next Event Countdown */}
+            {nextUpcoming && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-romantic-100 to-purple-100 p-4 rounded-2xl mb-6 flex items-center gap-4 border border-romantic-200/50"
+                >
+                    <div className="text-2xl">
+                        {EVENT_TYPES[nextUpcoming.type]?.icon || <Clock size={20} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs text-romantic-500 font-bold uppercase tracking-wider">Próximo</p>
+                        <p className="font-serif font-bold text-gray-800 truncate">{nextUpcoming.title}</p>
+                    </div>
+                    <div className="flex flex-col items-center bg-white/60 backdrop-blur-sm px-3 py-2 rounded-xl">
+                        <span className="text-2xl font-bold text-romantic-600">
+                            {daysUntilNext === 0 ? 'Hoy' : daysUntilNext}
+                        </span>
+                        {daysUntilNext !== 0 && (
+                            <span className="text-xs text-gray-500">{daysUntilNext === 1 ? 'día' : 'días'}</span>
+                        )}
+                    </div>
+                </motion.div>
+            )}
+
             {/* Calendar Widget */}
             <div className="bg-white rounded-3xl shadow-lg shadow-romantic-200/50 p-6 mb-8 overflow-hidden relative">
-                {/* Month Navigation */}
+                {/* View Mode Toggle */}
+                <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
+                    <button
+                        onClick={() => setViewMode('month')}
+                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${viewMode === 'month' ? 'bg-white text-romantic-600 shadow-sm' : 'text-gray-400'}`}
+                    >
+                        Mes
+                    </button>
+                    <button
+                        onClick={() => setViewMode('week')}
+                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${viewMode === 'week' ? 'bg-white text-romantic-600 shadow-sm' : 'text-gray-400'}`}
+                    >
+                        Semana
+                    </button>
+                </div>
+
+                {/* Navigation */}
                 <div className="flex justify-between items-center mb-6">
-                    <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><ChevronLeft /></button>
+                    <button onClick={goBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><ChevronLeft /></button>
                     <h2 className="text-xl font-bold text-gray-800 capitalize">
-                        {format(currentDate, 'MMMM yyyy', { locale: es })}
+                        {viewMode === 'month'
+                            ? format(currentDate, 'MMMM yyyy', { locale: es })
+                            : `${format(weekStart, "d MMM", { locale: es })} - ${format(weekEnd, "d MMM", { locale: es })}`
+                        }
                     </h2>
-                    <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><ChevronRight /></button>
+                    <button onClick={goForward} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><ChevronRight /></button>
                 </div>
 
                 {/* Weekday Headers */}
@@ -157,31 +258,30 @@ const CalendarPage = () => {
                 </div>
 
                 {/* Days Grid */}
-                <div className="grid grid-cols-7 gap-y-4 justify-items-center">
-                    {emptyStartDays.map((_, i) => <div key={`empty-${i}`} />)}
-
-                    {calendarDays.map((day) => {
-                        const dayEvents = getEventsForDay(day);
-                        const hasEvent = dayEvents.length > 0;
-
-                        return (
-                            <div key={day.toString()} className="flex flex-col items-center gap-1 relative">
-                                <button
-                                    onClick={() => setSelectedDate(day)}
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
-                                        ${isToday(day) ? 'bg-romantic-100 text-romantic-600 ring-2 ring-romantic-200' : ''}
-                                        ${isSelected(day) ? 'bg-romantic-500 text-white shadow-lg shadow-romantic-300' : 'text-gray-700 hover:bg-gray-50'}
-                                    `}
-                                >
-                                    {format(day, 'd')}
-                                    {hasEvent && !isSelected(day) && (
-                                        <div className="absolute -bottom-1 w-1.5 h-1.5 bg-romantic-400 rounded-full" />
-                                    )}
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
+                <AnimatePresence mode="wait">
+                    {viewMode === 'month' ? (
+                        <motion.div
+                            key="month"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="grid grid-cols-7 gap-y-4 justify-items-center"
+                        >
+                            {emptyStartDays.map((_, i) => <div key={`empty-${i}`} />)}
+                            {calendarDays.map(renderDayCell)}
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="week"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="grid grid-cols-7 gap-y-4 justify-items-center"
+                        >
+                            {weekDays.map(renderDayCell)}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Selected Date Events */}
@@ -224,7 +324,6 @@ const CalendarPage = () => {
                                 </div>
                             </div>
 
-                            {/* Delete Button (Only creator) */}
                             {user?.id === e.created_by && (
                                 <button
                                     onClick={() => handleDeleteEvent(e.id)}
