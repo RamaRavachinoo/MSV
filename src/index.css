@@ -1,28 +1,97 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+    /* Colors */
+    --color-romantic-50: #fff1f2;
+    --color-romantic-100: #ffe4e6;
+    --color-romantic-200: #fecdd3;
+    --color-romantic-300: #fda4af;
+    --color-romantic-400: #fb7185;
+    --color-romantic-500: #f43f5e;
+    --color-romantic-600: #e11d48;
+    --color-romantic-700: #be123c;
+    --color-romantic-800: #9f1239;
+    --color-romantic-900: #881337;
 
-@layer base {
-    body {
-        background-color: #fff1f2;
-        /* romantic-50 */
-        color: #1f2937;
-        /* gray-800 */
-        font-family: 'Inter', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+    --color-pastel-pink: #FFD1DC;
+    --color-pastel-blue: #AEC6CF;
+    --color-pastel-purple: #B39EB5;
+    --color-pastel-green: #77DD77;
+    --color-pastel-yellow: #FDFD96;
+
+    /* Fonts */
+    --font-sans: 'Outfit', sans-serif;
+    --font-serif: 'Playfair Display', serif;
+
+    /* Animations */
+    --animate-spin-slow: spin 3s linear infinite;
+    --animate-bounce-slow: bounce 2s infinite;
+    --animate-float: float 3s ease-in-out infinite;
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
     }
+}
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family: 'Playfair Display', serif;
-        color: #881337;
-        /* romantic-900 */
-    }
+/* Base Body Styles */
+body {
+    background: linear-gradient(135deg, #fff0f3 0%, #fff5f7 50%, #ffe4e8 100%);
+    background-attachment: fixed;
+    color: #4a0414;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-serif);
+    color: var(--color-romantic-900);
+}
+
+/* Glassmorphism Utilities */
+@utility glass-card {
+    @apply bg-white/40 backdrop-blur-xl border border-white/60;
+    box-shadow: 0 8px 32px 0 rgba(255, 100, 100, 0.1);
+}
+
+@utility glass-nav {
+    @apply bg-white/70 backdrop-blur-2xl border-t border-white/50;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+@utility btn-primary {
+    @apply bg-gradient-to-r from-romantic-500 to-romantic-600 text-white font-semibold shadow-lg shadow-romantic-200/50 hover:shadow-romantic-300/60 active:scale-95 transition-all duration-300;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-romantic-200);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-romantic-400);
 }

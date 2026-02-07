@@ -1,48 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import PhotoGallery from '../components/gallery/PhotoGallery';
-
-// Mock Data for MVP
-const MOCK_PHOTOS = [
-    { id: 1, url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=500&q=80', description: 'Nuestra primera salida', category: 'Recuerdos' },
-    { id: 2, url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=500&q=80', description: 'Eres maravillosa', category: 'Maravillosas' },
-    { id: 3, url: 'https://images.unsplash.com/photo-1621600411688-4be93cd68504?auto=format&fit=crop&w=500&q=80', description: 'Caminando juntos', category: 'A tu lado' },
-    { id: 4, url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=500&q=80', description: 'Esa sonrisa', category: 'Maravillosas' },
-    { id: 5, url: 'https://images.unsplash.com/photo-1604514332463-c7bc45db7f30?auto=format&fit=crop&w=500&q=80', description: 'Un día de lluvia', category: 'Recuerdos' },
-    { id: 6, url: 'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=500&q=80', description: 'Siempre juntos', category: 'A tu lado' },
-];
+import { supabase } from '../lib/supabase';
+import { photoDescriptions } from '../data/photoDescriptions';
 
 const GalleryPage = () => {
-    const [filter, setFilter] = useState('Todas');
-    const categories = ['Todas', 'Recuerdos', 'Maravillosas', 'A tu lado'];
+    const [photos, setPhotos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const filteredPhotos = filter === 'Todas'
-        ? MOCK_PHOTOS
-        : MOCK_PHOTOS.filter(photo => photo.category === filter);
+    useEffect(() => {
+        fetchPhotos();
+    }, []);
+
+    const fetchPhotos = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .storage
+                .from('photos')
+                .list('', { sortBy: { column: 'created_at', order: 'desc' } });
+
+            if (error) {
+                console.error('Error fetching photos:', error);
+                return;
+            }
+
+            // Transform data to include public URLs
+            const photosWithUrl = data
+                .filter(file => file.name !== '.emptyFolderPlaceholder') // Filter out placeholders
+                .map((file, index) => {
+                    const { data: { publicUrl } } = supabase
+                        .storage
+                        .from('photos')
+                        .getPublicUrl(file.name);
+
+                    return {
+                        id: file.id || index,
+                        url: publicUrl,
+                        description: photoDescriptions[file.name] || file.name.split('.')[0], // Use config or filename as fallback
+                        category: 'Recuerdos'
+                    };
+                });
+
+            setPhotos(photosWithUrl);
+        } catch (err) {
+            console.error('Unexpected error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div className="min-h-screen py-4">
-            <header className="mb-6 px-2">
-                <h1 className="text-3xl font-serif text-romantic-800 mb-2">Mis Favoritas Tuyas</h1>
-                <p className="text-sm text-gray-500">Colección de momentos que me enamoran</p>
+        <div className="min-h-screen py-4 space-y-6">
+            <header className="relative text-center z-10 px-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="inline-block mb-3 px-4 py-1.5 rounded-full bg-white/30 backdrop-blur-md border border-white/50 text-xs font-medium uppercase tracking-widest text-rose-800 shadow-sm"
+                >
+                    Galería de Amor
+                </motion.div>
+                <h1 className="text-3xl md:text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-600 font-bold drop-shadow-sm mb-2">
+                    El POR QUE de mis fotos favoritas
+                </h1>
+                <p className="text-sm text-gray-600 font-light max-w-xs mx-auto">
+                    Cada foto cuenta una parte de nuestra historia juntos.
+                </p>
+
             </header>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide px-2">
-                {categories.map(cat => (
-                    <button
-                        key={cat}
-                        onClick={() => setFilter(cat)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === cat
-                                ? 'bg-romantic-500 text-white shadow-md'
-                                : 'bg-white text-gray-600 border border-gray-200'
-                            }`}
+            {/* Content Area */}
+            <div className="px-2">
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
+                    </div>
+                ) : photos.length > 0 ? (
+                    <PhotoGallery photos={photos} />
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="glass-card p-8 text-center rounded-3xl mx-4"
                     >
-                        {cat}
-                    </button>
-                ))}
+                        <p className="text-gray-500 font-serif italic text-lg mb-2">Aún no hay fotos...</p>
+                        <p className="text-xs text-gray-400">¡Sube tu primera foto a Supabase!</p>
+                    </motion.div>
+                )}
             </div>
-
-            <PhotoGallery photos={filteredPhotos} />
+            <p className="text-sm text-gray-600 font-light max-w-xs mx-auto">
+                Obviamente voy a ir subiendo mas fotos :D
+            </p>
         </div>
     );
 };

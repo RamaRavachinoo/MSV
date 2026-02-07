@@ -69,36 +69,66 @@ const TimeTogether = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const TimeUnit = ({ value, label }) => (
-        <div className="flex flex-col items-center">
-            <motion.div
-                key={value}
-                initial={{ y: -5, opacity: 0.5 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="text-2xl md:text-3xl font-bold text-romantic-600 font-serif"
-            >
-                {String(value).padStart(2, '0')}
-            </motion.div>
-            <span className="text-[10px] md:text-xs uppercase tracking-wider text-gray-500">{label}</span>
+    const TimeUnit = ({ value, label, isSeconds }) => (
+        <div className="flex flex-col items-center relative group">
+            <div className={`
+                relative w-16 h-16 md:w-20 md:h-20 
+                flex items-center justify-center 
+                rounded-2xl 
+                bg-white/60 backdrop-blur-md 
+                border border-white/80 
+                shadow-sm
+                group-hover:scale-105 transition-transform duration-300
+                ${isSeconds ? 'border-rose-300 shadow-rose-200/50' : ''}
+            `}>
+                <motion.div
+                    key={value}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-rose-600 to-pink-500 font-serif"
+                >
+                    {String(value).padStart(2, '0')}
+                </motion.div>
+
+                {/* Decorative dots for seconds */}
+                {isSeconds && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                    </span>
+                )}
+            </div>
+            <span className="text-[10px] md:text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">{label}</span>
         </div>
     );
 
     return (
-        <div className="bg-white/80 backdrop-blur rounded-2xl p-6 shadow-sm border border-romantic-200 w-full">
-            <h2 className="text-center font-serif text-xl text-romantic-800 mb-4">Juntos creando historias por...</h2>
+        <div className="glass-card rounded-[2rem] p-6 md:p-8 w-full overflow-hidden relative">
+            {/* Background gloss effect */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-200/30 to-rose-200/30 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
 
-            <div className="grid grid-cols-3 gap-y-4 gap-x-2 md:flex md:justify-center md:gap-8">
-                {time.years > 0 && <TimeUnit value={time.years} label="Años" />}
-                <TimeUnit value={time.months} label="Meses" />
-                <TimeUnit value={time.days} label="Días" />
-                <TimeUnit value={time.hours} label="Hs" />
-                <TimeUnit value={time.minutes} label="Min" />
-                <TimeUnit value={time.seconds} label="Seg" />
+            <div className="relative z-10">
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <span className="h-px w-8 bg-rose-200"></span>
+                    <h2 className="text-center font-serif text-lg text-rose-800 tracking-wide">Juntos creando historias</h2>
+                    <span className="h-px w-8 bg-rose-200"></span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-y-6 gap-x-4 md:flex md:justify-between md:gap-4 px-2">
+                    {time.years > 0 && <TimeUnit value={time.years} label="Años" />}
+                    <TimeUnit value={time.months} label="Meses" />
+                    <TimeUnit value={time.days} label="Días" />
+                    <TimeUnit value={time.hours} label="Hs" />
+                    <TimeUnit value={time.minutes} label="Min" />
+                    <TimeUnit value={time.seconds} label="Seg" isSeconds />
+                </div>
+
+                <div className="mt-6 text-center">
+                    <p className="text-xs text-rose-400/80 font-medium tracking-wider uppercase">
+                        Desde el 31 de Mayo de 2025
+                    </p>
+                </div>
             </div>
-
-            <p className="text-center text-xs text-romantic-400 mt-4 italic font-serif">
-                Desde el 31 de Mayo de 2025
-            </p>
         </div>
     );
 };
