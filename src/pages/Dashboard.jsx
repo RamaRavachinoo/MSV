@@ -133,7 +133,7 @@ const Dashboard = () => {
                     <img
                         src={randomPhoto.url}
                         alt="Recuerdo"
-                        className="w-full h-48 object-cover"
+                        className="w-full h-auto"
                     />
                     <div className="p-4">
                         <p className="text-xs text-romantic-400 uppercase tracking-widest font-bold mb-1">Recuerdo del Día</p>
