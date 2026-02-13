@@ -166,13 +166,13 @@ const Dashboard = () => {
             {/* Quick Access Grid */}
             <div className="grid grid-cols-2 gap-4">
                 <QuickCard
-                    emoji="🎁"
-                    title="Ruleta"
-                    subtitle="Un vale por dia"
+                    emoji="📂"
+                    title="Mi Espacio"
+                    subtitle="Notas y archivos"
                     delay={0.3}
-                    color="bg-rose-100/40"
-                    borderColor="border-rose-200/50"
-                    onClick={() => navigate('/roulette')}
+                    color="bg-amber-100/40"
+                    borderColor="border-amber-200/50"
+                    onClick={() => navigate('/resources')}
                 />
                 <QuickCard
                     emoji="📸"
