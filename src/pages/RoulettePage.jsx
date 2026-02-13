@@ -22,11 +22,11 @@ const RoulettePage = () => {
                 </div>
 
                 <h1 className="text-2xl font-serif text-gray-800 mb-3">
-                    Ruleta en construcción 🎰
+                    Ruleta en construcción
                 </h1>
 
                 <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                    Esta sección todavía no está disponible. Pronto vas a poder girar la ruleta y ganar vales especiales. 💝
+                    Esta sección todavía no está disponible. Pronto vas a poder girar la ruleta y ganar vales especiales.
                 </p>
 
                 <button
