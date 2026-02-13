@@ -185,7 +185,7 @@ const CalendarPage = () => {
             <div className="pt-8 pb-6 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-serif text-romantic-900">Fechas Importantes</h1>
-                    <p className="text-sm text-romantic-600">Nuestros momentos especiales</p>
+                    <p className="text-sm text-romantic-600">Nuestros momentos especiales, aunque tambien la podes usar para fechas personales</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Maximize2 } from 'lucide-react';
 
@@ -38,17 +39,19 @@ const PhotoGallery = ({ photos }) => {
                 ))}
             </div>
 
-            <AnimatePresence>
-                {selectedPhoto && (
+            {selectedPhoto && createPortal(
+                <AnimatePresence>
                     <motion.div
+                        key="gallery-modal"
                         initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
                         animate={{ opacity: 1, backdropFilter: "blur(8px)" }}
                         exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
                         className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
                         onClick={() => setSelectedPhoto(null)}
                     >
+                        {/* Close Button */}
                         <button
-                            className="absolute top-6 right-6 text-white/80 hover:text-white p-2 bg-white/10 backdrop-blur-md rounded-full transition-colors z-50"
+                            className="absolute top-6 right-6 text-white/80 hover:text-white p-2 bg-white/10 backdrop-blur-md rounded-full transition-colors z-[110]"
                             onClick={() => setSelectedPhoto(null)}
                         >
                             <X size={24} />
@@ -84,8 +87,9 @@ const PhotoGallery = ({ photos }) => {
                             </div>
                         </motion.div>
                     </motion.div>
-                )}
-            </AnimatePresence>
+                </AnimatePresence>,
+                document.body
+            )}
         </>
     );
 };

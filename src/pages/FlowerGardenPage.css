@@ -1,0 +1,372 @@
+/* ===== FLOWER GARDEN — Bouquet Style v3 ===== */
+
+.fg-page {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: radial-gradient(ellipse at 50% 55%, #0f1b33 0%, #080e1f 50%, #030810 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem 2.5rem;
+}
+
+/* ===== FIREFLIES ===== */
+.fg-fireflies {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.fg-firefly {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: fg-fly ease-in-out infinite;
+}
+
+@keyframes fg-fly {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.5);
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: translate(var(--dx, 15px), var(--dy, -20px)) scale(1);
+    }
+
+    85% {
+        opacity: 1;
+    }
+}
+
+/* ===== BOUQUET ===== */
+.fg-bouquet {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    animation: fg-bouquet-in 1s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fg-bouquet-in {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.85);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== FLOWERS AREA ===== */
+.fg-flowers-area {
+    position: relative;
+    width: 360px;
+    height: 320px;
+}
+
+/* ===== INDIVIDUAL FLOWER ===== */
+.fg-flower {
+    position: absolute;
+    bottom: 0;
+    transform-origin: bottom center;
+    animation: fg-sway ease-in-out infinite;
+}
+
+@keyframes fg-sway {
+
+    0%,
+    100% {
+        transform: translateX(-50%) rotate(calc(var(--base-angle, 0deg) - var(--sway, 2deg)));
+    }
+
+    50% {
+        transform: translateX(-50%) rotate(calc(var(--base-angle, 0deg) + var(--sway, 2deg)));
+    }
+}
+
+/* Stem */
+.fg-stem {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 3px;
+    transform-origin: bottom center;
+    animation: fg-grow 0.8s ease-out both;
+}
+
+@keyframes fg-grow {
+    0% {
+        transform: translateX(-50%) scaleY(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(-50%) scaleY(1);
+        opacity: 1;
+    }
+}
+
+/* Leaves */
+.fg-leaf {
+    position: absolute;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    animation: fg-leaf-pop 0.5s ease-out both;
+    opacity: 0;
+}
+
+.fg-leaf-l {
+    right: calc(100% - 2px);
+    transform-origin: right center;
+    transform: rotate(-35deg);
+    border-radius: 50% 0 50% 0;
+}
+
+.fg-leaf-r {
+    left: calc(100% - 2px);
+    transform-origin: left center;
+    transform: rotate(35deg);
+    border-radius: 0 50% 0 50%;
+}
+
+@keyframes fg-leaf-pop {
+    0% {
+        opacity: 0;
+        transform: rotate(var(--r, 35deg)) scale(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: rotate(var(--r, 35deg)) scale(1);
+    }
+}
+
+/* Flower head */
+.fg-head {
+    position: absolute;
+    pointer-events: none;
+}
+
+.fg-flower-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    animation: fg-bloom 0.7s ease-out both;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.15));
+}
+
+@keyframes fg-bloom {
+    0% {
+        transform: scale(0) rotate(-15deg);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.15) rotate(5deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.fg-glow-circle {
+    animation: fg-glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes fg-glow-pulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.9;
+    }
+}
+
+/* ===== FILLER GREENERY ===== */
+.fg-filler {
+    position: absolute;
+    bottom: 0;
+    transform-origin: bottom center;
+    opacity: 0;
+    animation: fg-filler-in 0.6s ease-out forwards;
+}
+
+@keyframes fg-filler-in {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) rotate(var(--a, 0deg)) scaleY(0);
+    }
+
+    100% {
+        opacity: 0.65;
+        transform: translateX(-50%) rotate(var(--a, 0deg)) scaleY(1);
+    }
+}
+
+/* ===== PAPER WRAPPER ===== */
+.fg-paper-wrap {
+    position: relative;
+    z-index: 12;
+    margin-top: -100px;
+    /* Adjusted for smaller SVG height */
+    display: flex;
+    justify-content: center;
+    filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.4));
+    animation: fg-paper-in 0.8s ease-out 0.1s both;
+    pointer-events: none;
+}
+
+@keyframes fg-paper-in {
+    0% {
+        opacity: 0;
+        transform: translateY(60px) scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.fg-paper-svg {
+    display: block;
+    max-width: 100%;
+    width: 320px;
+    height: auto;
+    /* Ensure nice crisp rendering */
+    shape-rendering: geometricPrecision;
+}
+
+/* ===== MESSAGES ===== */
+.fg-message {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 440px;
+    padding: 0 1.25rem;
+    margin-top: 1.2rem;
+}
+
+.fg-msg-main {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 210, 0.9);
+    line-height: 1.7;
+    letter-spacing: 0.3px;
+    text-shadow: 0 0 18px rgba(255, 255, 150, 0.25);
+}
+
+.fg-msg-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 210, 0.65);
+    margin-top: 0.5rem;
+    text-shadow: 0 0 12px rgba(255, 255, 150, 0.15);
+}
+
+/* ===== REGEN BUTTON ===== */
+.fg-regen {
+    position: relative;
+    z-index: 10;
+    margin-top: 1.2rem;
+    padding: 12px 28px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(255, 255, 210, 0.8);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.fg-regen:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.fg-regen:active {
+    transform: scale(0.97);
+}
+
+/* ===== BACK BUTTON ===== */
+.fg-back {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 50;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1.2rem;
+}
+
+.fg-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 420px) {
+    .fg-flowers-area {
+        width: 300px;
+        height: 280px;
+    }
+
+    .fg-paper-wrap {
+        margin-top: -60px;
+    }
+
+    .fg-paper-svg {
+        width: 240px;
+    }
+
+    .fg-msg-main {
+        font-size: 0.95rem;
+    }
+
+    .fg-msg-sub {
+        font-size: 0.85rem;
+    }
+}

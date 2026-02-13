@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Mail, Home, Gift, Star } from 'lucide-react';
+import { Mail, Home, Gift, Star, Heart, FolderHeart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
@@ -13,6 +13,8 @@ const MainLayout = () => {
         { icon: Mail, label: 'Carta', path: '/love-letter' },
         { icon: Gift, label: 'Ruleta', path: '/roulette' },
         { icon: Star, label: 'Fotos', path: '/gallery' },
+        { icon: Heart, label: 'Nosotros', path: '/our-things' },
+        { icon: FolderHeart, label: 'Mi Espacio', path: '/resources' },
     ];
 
     return (

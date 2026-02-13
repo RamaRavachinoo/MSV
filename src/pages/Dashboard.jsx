@@ -167,8 +167,8 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 gap-4">
                 <QuickCard
                     emoji="🎁"
-                    title="Tu Regalo"
-                    subtitle="Un detalle especial"
+                    title="Ruleta"
+                    subtitle="Un vale por dia"
                     delay={0.3}
                     color="bg-rose-100/40"
                     borderColor="border-rose-200/50"
@@ -195,7 +195,7 @@ const Dashboard = () => {
                 <QuickCard
                     emoji="📅"
                     title="Fechas"
-                    subtitle="Calendario Juntos"
+                    subtitle="Calendario"
                     delay={0.5}
                     color="bg-pink-100/40"
                     borderColor="border-pink-200/50"
@@ -209,6 +209,15 @@ const Dashboard = () => {
                     color="bg-purple-100/40"
                     borderColor="border-purple-200/50"
                     onClick={() => navigate('/love-letter')}
+                />
+                <QuickCard
+                    emoji="🌸"
+                    title="Flores"
+                    subtitle="Un ramo para vos"
+                    delay={0.55}
+                    color="bg-fuchsia-100/40"
+                    borderColor="border-fuchsia-200/50"
+                    onClick={() => navigate('/flowers')}
                 />
                 <QuickCard
                     emoji="🌎"
