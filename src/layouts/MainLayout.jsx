@@ -1,11 +1,18 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import { Mail, Home, Gift, Star, Heart, FolderHeart } from 'lucide-react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Mail, Home, Gift, Star, Heart, FolderHeart, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
 const MainLayout = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate('/login');
+    };
 
     // Bottom Navigation Items
     const navItems = [
@@ -24,6 +31,14 @@ const MainLayout = () => {
             <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-200/30 rounded-full blur-[100px] pointer-events-none" />
 
             <main className="relative z-10 container mx-auto px-4 py-8 max-w-md md:max-w-2xl">
+                {/* Logout Button */}
+                <button
+                    onClick={handleLogout}
+                    className="absolute top-4 right-4 p-2 bg-white/50 backdrop-blur-sm rounded-full text-rose-800 hover:bg-white/80 transition-all z-50"
+                    title="Cerrar sesión"
+                >
+                    <LogOut size={20} />
+                </button>
                 <Outlet />
             </main>
 
