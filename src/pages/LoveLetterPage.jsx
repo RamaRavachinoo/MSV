@@ -6,12 +6,18 @@ import Envelope from '../components/letter/Envelope';
 
 const LETTER_CONTENT = {
     greeting: "Marti,",
-    body: `Este era tu regalo para el 14 de febrero, lamentablemente no estoy en condiciones de escribirte cosas lindas por las cosas que hice.
-    queria que al menos lo veas por que me costo mucho y hay mucho amor en este proyectito.
-    Cambies o no de opinion sos y siempre vas a ser el amor de mi vida. estoy tan arrepentido de todo lo que hice que me da mucha verguenza mostrarte esto, me dijiste que nisiquiera te hacia ilusion pero es una pequeña muestra de amor de mi hacia vos.
-    No me quiero hacer la victima por que no soy ningun santo, pero si te pido perdon por todo lo que hice y por todo el daño que te cause.
-    solo quiero que sepas que voy a esperarte y esforzarme para ser la persona que mereces.
-    te amo muchisimo y siempre te voy a amar, ojala algun dia puedas perdonarme y volver a estar juntos.`,
+    body: `Esta es la tercera versión de la carta, ya te imaginarás las etapas por las que pasé escribiéndola.
+
+No quiero ser repetitivo, soy completamente consciente de todo lo que pasó. Te juré mil veces que jamás vamos a volver a pasar por algo igual; voy a dar absolutamente todo de mí para mejorar como novio y ser el hombre que te merecés.
+
+Se me ocurrió hacerte esta página para demostrarte un poquito de todo lo que te amo. Le puse mucho tiempo y corazón a este proyecto, y espero de verdad que te guste. Me encantaría que me dejes seguir construyéndola y mejorándola para vos, para que sea un espacio útil y nuestro.
+
+Esta página va a perdurar con el tiempo, como mi amor por vos. Cada vez que la veas quiero que te acuerdes de cuánto te amo y ojalá te motive a seguir construyendo cosas conmigo.
+
+Sos lo mejor que me pasó en la vida y me llena el alma que me permitas festejar este día con vos. La verdad es que me hacés sentir el hombre más afortunado del mundo y te agradezco por elegirme una y otra vez.
+
+Quiero que esta página sea el testigo de todo lo que nos queda por vivir: de los viajes que todavía no hicimos, de las risas que nos faltan y de cada momento que elijamos pasar uno al lado del otro. Este detalle es solo un pedacito de todo lo que te merecés. Te amo con todo lo que soy, hoy y todos los días. Feliz San Valentín, Marti.
+    `,
     closing: "Te amo infinitamente,",
     signature: "Rama"
 };

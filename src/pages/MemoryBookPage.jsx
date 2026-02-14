@@ -160,15 +160,14 @@ const MemoryBookPage = () => {
                                     alt={mem.description}
                                     className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-2">
-                                    {user?.id === mem.user_id && (
-                                        <button
-                                            onClick={() => handleDelete(mem.id, mem.photo_url)}
-                                            className="bg-white/90 p-1.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent p-2 flex items-end justify-end">
+                                    <button
+                                        onClick={() => handleDelete(mem.id, mem.photo_url)}
+                                        className="bg-white/90 p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors shadow-sm"
+                                        title="Borrar recuerdo"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
                             </div>
 
@@ -271,8 +270,8 @@ const MemoryBookPage = () => {
                                     type="submit"
                                     disabled={uploading || !newMemory.file}
                                     className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all ${uploading || !newMemory.file
-                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                            : 'bg-romantic-500 text-white shadow-romantic-200 active:scale-95'
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-romantic-500 text-white shadow-romantic-200 active:scale-95'
                                         }`}
                                 >
                                     {uploading ? 'Subiendo...' : 'Guardar Recuerdo ❤️'}
