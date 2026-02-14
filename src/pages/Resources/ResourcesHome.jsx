@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Folder, Plus, FolderPlus, ArrowRight, FileText, Link as LinkIcon, StickyNote, Trash2, AlertTriangle, Loader2, MoreVertical } from 'lucide-react';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -95,7 +96,7 @@ const ResourcesHome = () => {
             setDeleteFolderConfirm(null);
         } catch (error) {
             console.error('Error deleting folder:', error);
-            alert('Error al eliminar carpeta: ' + error.message);
+            // alert('Error al eliminar carpeta: ' + error.message);
         } finally {
             setDeleting(false);
         }
@@ -192,7 +193,7 @@ const ResourcesHome = () => {
 
             {/* Add Folder Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-rose-100 rounded-xl">
@@ -233,42 +234,16 @@ const ResourcesHome = () => {
             )}
 
             {/* Delete Folder Confirmation Modal */}
-            {deleteFolderConfirm && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                                <AlertTriangle size={28} className="text-red-500" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-2">¿Eliminar carpeta?</h3>
-                            <p className="text-sm text-gray-500 mb-1">
-                                <span className="font-medium text-gray-700">"{deleteFolderConfirm.name}"</span>
-                            </p>
-                            <p className="text-xs text-gray-400 mb-6">
-                                Se eliminarán todos los archivos, enlaces y notas dentro de esta carpeta. Esta acción no se puede deshacer.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setDeleteFolderConfirm(null)}
-                                disabled={deleting}
-                                className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={() => handleDeleteFolder(deleteFolderConfirm)}
-                                disabled={deleting}
-                                className="flex-1 py-3 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-                            >
-                                {deleting && <Loader2 size={16} className="animate-spin" />}
-                                {deleting ? 'Eliminando...' : 'Eliminar'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={!!deleteFolderConfirm}
+                onClose={() => setDeleteFolderConfirm(null)}
+                onConfirm={() => handleDeleteFolder(deleteFolderConfirm)}
+                title="¿Eliminar carpeta?"
+                message={`¿Seguro que quieres eliminar "${deleteFolderConfirm?.name}"? Se perderán todos los archivos dentro.`}
+                confirmText={deleting ? "Eliminando..." : "Eliminar"}
+                cancelText="Cancelar"
+                isDestructive={true}
+            />
         </div>
     );
 };

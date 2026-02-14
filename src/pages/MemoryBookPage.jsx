@@ -6,12 +6,14 @@ import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { createPortal } from 'react-dom';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const MemoryBookPage = () => {
     const { user } = useAuth();
     const [memories, setMemories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [deleteConfirmMem, setDeleteConfirmMem] = useState(null);
 
     // Upload State
     const [newMemory, setNewMemory] = useState({
@@ -100,16 +102,17 @@ const MemoryBookPage = () => {
         }
     };
 
-    const handleDelete = async (id, photoUrl) => {
-        if (!window.confirm("¿Seguro que quieres borrar este recuerdo? 😢")) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmMem) return;
 
         try {
             // Optional: Delete from storage logic could be added here if needed
             // extracting path from url is complex, for MVP just deleting DB entry
 
-            const { error } = await supabase.from('memories').delete().eq('id', id);
+            const { error } = await supabase.from('memories').delete().eq('id', deleteConfirmMem.id);
             if (error) throw error;
             fetchMemories();
+            setDeleteConfirmMem(null);
         } catch (error) {
             console.error('Error deleting:', error);
         }
@@ -162,7 +165,7 @@ const MemoryBookPage = () => {
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent p-2 flex items-end justify-end">
                                     <button
-                                        onClick={() => handleDelete(mem.id, mem.photo_url)}
+                                        onClick={() => setDeleteConfirmMem(mem)}
                                         className="bg-white/90 p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors shadow-sm"
                                         title="Borrar recuerdo"
                                     >
@@ -283,6 +286,20 @@ const MemoryBookPage = () => {
                 document.body
             )}
         </div>
+    )
+}
+
+<ConfirmModal
+    isOpen={!!deleteConfirmMem}
+    onClose={() => setDeleteConfirmMem(null)}
+    onConfirm={handleDelete}
+    title="¿Borrar recuerdo?"
+    message="¿Seguro que quieres borrar este recuerdo? 😢"
+    confirmText="Borrar"
+    cancelText="Mmm... mejor no"
+    isDestructive={true}
+/>
+        </div >
     );
 };
 

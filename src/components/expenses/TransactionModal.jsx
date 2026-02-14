@@ -34,7 +34,7 @@ const TransactionModal = ({ isOpen, onClose, editingTx, onSuccess }) => {
         if (editingTx) {
             setFormData({
                 type: editingTx.type,
-                amount: editingTx.amount,
+                amount: formatNumber(editingTx.amount),
                 description: editingTx.description,
                 category: editingTx.category,
                 date: format(new Date(editingTx.date), 'yyyy-MM-dd')
@@ -57,7 +57,7 @@ const TransactionModal = ({ isOpen, onClose, editingTx, onSuccess }) => {
         try {
             const txData = {
                 type: formData.type,
-                amount: formData.amount,
+                amount: cleanNumber(formData.amount),
                 description: formData.description,
                 category: formData.category || (formData.type === 'income' ? 'Ingreso' : 'Gasto'),
                 date: new Date(formData.date).toISOString(),
@@ -118,9 +118,9 @@ const TransactionModal = ({ isOpen, onClose, editingTx, onSuccess }) => {
                     <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">$</span>
                         <input
-                            type="number"
+                            type="text"
                             value={formData.amount}
-                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, amount: formatNumber(e.target.value) })}
                             className="w-full pl-10 pr-4 py-4 bg-gray-50 rounded-2xl text-2xl font-bold text-gray-800 outline-none focus:ring-2 focus:ring-romantic-300"
                             placeholder="0"
                             autoFocus
@@ -180,6 +180,21 @@ const TransactionModal = ({ isOpen, onClose, editingTx, onSuccess }) => {
             </form>
         </Modal>
     );
+};
+
+// Formatting utilities
+const formatNumber = (val) => {
+    if (!val) return '';
+    // Remove non-digits
+    const number = val.toString().replace(/\D/g, '');
+    // Format with thousands separator (es-AR uses dots)
+    return new Intl.NumberFormat('es-AR').format(number);
+};
+
+const cleanNumber = (val) => {
+    if (!val) return '';
+    // Remove formatting dots to get raw number string
+    return val.toString().replace(/\./g, '');
 };
 
 export default TransactionModal;

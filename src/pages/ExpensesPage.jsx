@@ -9,6 +9,9 @@ import { format } from 'date-fns';
 import ExpensesView from '../components/expenses/ExpensesView';
 import GoalsView from '../components/expenses/GoalsView';
 import TransactionModal from '../components/expenses/TransactionModal';
+import CreateGoalModal from '../components/expenses/CreateGoalModal';
+import ContributionModal from '../components/expenses/ContributionModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const ExpensesPage = () => {
     const { user, logout } = useAuth();
@@ -24,6 +27,8 @@ const ExpensesPage = () => {
     // Modal State for Transactions
     const [isTxModalOpen, setIsTxModalOpen] = useState(false);
     const [editingTx, setEditingTx] = useState(null);
+    const [deleteConfirmTx, setDeleteConfirmTx] = useState(null);
+
 
     useEffect(() => {
         fetchTransactions();
@@ -73,15 +78,26 @@ const ExpensesPage = () => {
         setTotalExpense(expense);
     };
 
-    const handleDeleteTransaction = async (id) => {
-        if (!window.confirm("¿Seguro que quieres borrar este movimiento?")) return;
+    const handleDeleteTransaction = async () => {
+        if (!deleteConfirmTx) return;
+
         try {
-            const { error } = await supabase.from('expenses').delete().eq('id', id);
+            const { error } = await supabase
+                .from('expenses')
+                .delete()
+                .eq('id', deleteConfirmTx);
+
             if (error) throw error;
             fetchTransactions();
+            setDeleteConfirmTx(null);
         } catch (error) {
-            console.error('Error deleting:', error);
+            console.error('Error deleting transaction:', error);
+            // alert('Error al eliminar. Intenta de nuevo.'); // Replaced by simple console log for now, or use a toast later
         }
+    };
+
+    const confirmDeleteTransaction = (id) => {
+        setDeleteConfirmTx(id);
     };
 
     const openEditModal = (tx) => {
@@ -146,7 +162,7 @@ const ExpensesPage = () => {
                         income={totalIncome}
                         expense={totalExpense}
                         onEdit={openEditModal}
-                        onDelete={handleDeleteTransaction}
+                        onDelete={confirmDeleteTransaction}
                     />
                 ) : (
                     <GoalsView key="goals" />
@@ -171,6 +187,17 @@ const ExpensesPage = () => {
                 onClose={() => setIsTxModalOpen(false)}
                 editingTx={editingTx}
                 onSuccess={fetchTransactions}
+            />
+
+            <ConfirmModal
+                isOpen={!!deleteConfirmTx}
+                onClose={() => setDeleteConfirmTx(null)}
+                onConfirm={handleDeleteTransaction}
+                title="¿Eliminar movimiento?"
+                message="Esta acción no se puede deshacer."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                isDestructive={true}
             />
         </div>
     );

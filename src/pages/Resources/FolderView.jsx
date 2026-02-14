@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { ArrowLeft, Search, Plus, File, Link as LinkIcon, StickyNote, MoreVertical, Loader2, Trash2, FolderInput, Folder, X, AlertTriangle } from 'lucide-react';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -172,7 +173,7 @@ const FolderView = () => {
             setDeleteConfirmResource(null);
         } catch (error) {
             console.error('Error deleting resource:', error);
-            alert('Error al eliminar: ' + error.message);
+            // alert('Error al eliminar: ' + error.message);
         } finally {
             setActionLoading(false);
         }
@@ -372,7 +373,7 @@ const FolderView = () => {
 
             {/* Add Resource Modal */}
             {addModalType && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             {addModalType === 'note' && <><StickyNote className="text-yellow-500" /> Nueva Nota</>}
@@ -456,48 +457,20 @@ const FolderView = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {deleteConfirmResource && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                                <AlertTriangle size={28} className="text-red-500" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-2">¿Eliminar este elemento?</h3>
-                            <p className="text-sm text-gray-500 mb-1">
-                                <span className="font-medium text-gray-700">"{deleteConfirmResource.title}"</span>
-                            </p>
-                            <p className="text-xs text-gray-400 mb-6">
-                                {deleteConfirmResource.type === 'file'
-                                    ? 'Se eliminará el archivo permanentemente del almacenamiento.'
-                                    : 'Esta acción no se puede deshacer.'}
-                            </p>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setDeleteConfirmResource(null)}
-                                disabled={actionLoading}
-                                className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={() => handleDeleteResource(deleteConfirmResource)}
-                                disabled={actionLoading}
-                                className="flex-1 py-3 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-                            >
-                                {actionLoading && <Loader2 size={16} className="animate-spin" />}
-                                {actionLoading ? 'Eliminando...' : 'Eliminar'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={!!deleteConfirmResource}
+                onClose={() => setDeleteConfirmResource(null)}
+                onConfirm={() => handleDeleteResource(deleteConfirmResource)}
+                title="¿Eliminar elemento?"
+                message={`¿Seguro que quieres eliminar "${deleteConfirmResource?.title}"?`}
+                confirmText={actionLoading ? "Eliminando..." : "Eliminar"}
+                cancelText="Cancelar"
+                isDestructive={true}
+            />
 
             {/* Move Resource Modal */}
             {moveResource && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">

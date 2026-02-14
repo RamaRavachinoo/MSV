@@ -18,8 +18,7 @@ const EVENT_ICONS = {
 const Dashboard = () => {
     const navigate = useNavigate();
     const [randomPhoto, setRandomPhoto] = useState(null);
-    const [nextEvent, setNextEvent] = useState(null);
-    const [daysUntil, setDaysUntil] = useState(null);
+    const [nextEvents, setNextEvents] = useState([]);
 
     useEffect(() => {
         fetchRandomPhoto();
@@ -75,8 +74,8 @@ const Dashboard = () => {
                 .sort((a, b) => a.nextDate - b.nextDate);
 
             if (upcoming.length > 0) {
-                setNextEvent(upcoming[0]);
-                setDaysUntil(differenceInDays(upcoming[0].nextDate, today));
+                // Take top 3 events
+                setNextEvents(upcoming.slice(0, 3));
             }
         } catch (e) {
             console.error('Error fetching next event:', e);
@@ -142,25 +141,40 @@ const Dashboard = () => {
                 </motion.div>
             )}
 
-            {/* Next Upcoming Event */}
-            {nextEvent && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35 }}
-                    className="bg-gradient-to-r from-romantic-100 to-purple-100 p-4 rounded-2xl flex items-center gap-4 cursor-pointer border border-romantic-200/50"
-                    onClick={() => navigate('/calendar')}
-                >
-                    <div className="text-3xl">{EVENT_ICONS[nextEvent.type] || '📌'}</div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-xs text-romantic-500 font-bold uppercase tracking-wider">Próximo evento</p>
-                        <p className="font-serif font-bold text-gray-800 truncate">{nextEvent.title}</p>
-                    </div>
-                    <div className="flex flex-col items-center bg-white/60 backdrop-blur-sm px-3 py-2 rounded-xl">
-                        <span className="text-2xl font-bold text-romantic-600">{daysUntil}</span>
-                        <span className="text-xs text-gray-500">{daysUntil === 1 ? 'día' : 'días'}</span>
-                    </div>
-                </motion.div>
+            {/* Next Upcoming Events */}
+            {nextEvents.length > 0 && (
+                <div className="space-y-3">
+                    <h2 className="px-1 text-sm font-bold text-gray-400 uppercase tracking-widest">Próximos Eventos</h2>
+                    {nextEvents.map((event, index) => {
+                        const days = differenceInDays(event.nextDate, new Date());
+                        return (
+                            <motion.div
+                                key={event.id || index}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.35 + (index * 0.1) }}
+                                className="bg-gradient-to-r from-romantic-100 to-purple-100 p-4 rounded-2xl flex items-center gap-4 cursor-pointer border border-romantic-200/50 hover:shadow-md transition-shadow"
+                                onClick={() => navigate('/calendar')}
+                            >
+                                <div className="text-3xl">{EVENT_ICONS[event.type] || '📌'}</div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-serif font-bold text-gray-800 truncate">{event.title}</p>
+                                    <p className="text-xs text-romantic-500 font-medium">
+                                        {event.nextDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col items-center bg-white/60 backdrop-blur-sm px-3 py-2 rounded-xl min-w-[70px]">
+                                    <span className="text-xl font-bold text-romantic-600">
+                                        {days === 0 ? 'Hoy' : days}
+                                    </span>
+                                    {days !== 0 && (
+                                        <span className="text-[10px] text-gray-500 uppercase font-bold">{days === 1 ? 'día' : 'días'}</span>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
             )}
 
             {/* Quick Access Grid */}

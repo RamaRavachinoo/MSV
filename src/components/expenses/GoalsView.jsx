@@ -6,6 +6,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 import GoalCard from './GoalCard';
 import CreateGoalModal from './CreateGoalModal';
 import ContributionModal from './ContributionModal';
+import ConfirmModal from '../ui/ConfirmModal';
 
 const GoalsView = () => {
     const { user } = useAuth();
@@ -44,19 +45,20 @@ const GoalsView = () => {
         }
     };
 
-    const handleDeleteGoal = async (id) => {
+    const handleDeleteGoal = async () => {
+        if (!deleteConfirmGoal) return;
         setDeleting(true);
         try {
             // Delete contributions first (cascade usually handles this but safety first)
-            await supabase.from('contributions').delete().eq('goal_id', id);
+            await supabase.from('contributions').delete().eq('goal_id', deleteConfirmGoal.id);
 
-            const { error } = await supabase.from('goals').delete().eq('id', id);
+            const { error } = await supabase.from('goals').delete().eq('id', deleteConfirmGoal.id);
             if (error) throw error;
-            setGoals(prev => prev.filter(g => g.id !== id));
+            setGoals(prev => prev.filter(g => g.id !== deleteConfirmGoal.id));
             setDeleteConfirmGoal(null);
         } catch (e) {
             console.error(e);
-            alert("Error al borrar meta");
+            // alert("Error al borrar meta");
         } finally {
             setDeleting(false);
         }
@@ -147,44 +149,16 @@ const GoalsView = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {deleteConfirmGoal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                                <AlertTriangle size={28} className="text-red-500" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-2">¿Eliminar esta meta?</h3>
-                            <p className="text-sm text-gray-500 mb-1">
-                                <span className="font-medium text-gray-700">
-                                    {deleteConfirmGoal.emoji} "{deleteConfirmGoal.title}"
-                                </span>
-                            </p>
-                            <p className="text-xs text-gray-400 mb-6">
-                                Se eliminarán todos los aportes asociados a esta meta. Esta acción no se puede deshacer.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setDeleteConfirmGoal(null)}
-                                disabled={deleting}
-                                className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={() => handleDeleteGoal(deleteConfirmGoal.id)}
-                                disabled={deleting}
-                                className="flex-1 py-3 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-                            >
-                                {deleting && <Loader2 size={16} className="animate-spin" />}
-                                {deleting ? 'Eliminando...' : 'Eliminar'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={!!deleteConfirmGoal}
+                onClose={() => setDeleteConfirmGoal(null)}
+                onConfirm={handleDeleteGoal}
+                title="¿Eliminar esta meta?"
+                message={`Se eliminarán todos los aportes asociados a "${deleteConfirmGoal?.title}". Esta acción no se puede deshacer.`}
+                confirmText={deleting ? "Eliminando..." : "Eliminar"}
+                cancelText="Cancelar"
+                isDestructive={true}
+            />
         </motion.div>
     );
 };

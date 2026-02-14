@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { createPortal } from 'react-dom';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const EVENT_TYPES = {
     date: { label: 'Cita Romántica', color: 'bg-romantic-100 text-romantic-600', dotColor: 'bg-romantic-400', icon: <Heart size={16} /> },
@@ -21,6 +22,7 @@ const CalendarPage = () => {
     const [events, setEvents] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [deleteConfirmEvent, setDeleteConfirmEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('month');
 
@@ -72,13 +74,17 @@ const CalendarPage = () => {
         }
     };
 
-    const handleDeleteEvent = async (id) => {
-        if (!window.confirm("¿Borrar esta fecha importante?")) return;
+    const handleDeleteEvent = async () => {
+        if (!deleteConfirmEvent) return;
         try {
-            const { error } = await supabase.from('events').delete().eq('id', id);
+            const { error } = await supabase.from('events').delete().eq('id', deleteConfirmEvent);
             if (error) throw error;
             fetchEvents();
-        } catch (e) { console.error(e); }
+            setDeleteConfirmEvent(null);
+        } catch (e) {
+            console.error(e);
+            // alert error handled silently or add toast later
+        }
     };
 
     // Calendar Generation
@@ -326,7 +332,7 @@ const CalendarPage = () => {
 
                             {user?.id === e.created_by && (
                                 <button
-                                    onClick={() => handleDeleteEvent(e.id)}
+                                    onClick={() => setDeleteConfirmEvent(e.id)}
                                     className="p-2 text-gray-300 hover:text-red-500 transition-colors"
                                 >
                                     <X size={18} />
@@ -427,6 +433,17 @@ const CalendarPage = () => {
                 </AnimatePresence>,
                 document.body
             )}
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!deleteConfirmEvent}
+                onClose={() => setDeleteConfirmEvent(null)}
+                onConfirm={handleDeleteEvent}
+                title="¿Borrar fecha?"
+                message="Esta fecha importante se eliminará del calendario."
+                confirmText="Borrar"
+                cancelText="Cancelar"
+                isDestructive={true}
+            />
         </div>
     );
 };
