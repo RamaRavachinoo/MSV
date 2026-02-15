@@ -285,21 +285,18 @@ const MemoryBookPage = () => {
                 </AnimatePresence>,
                 document.body
             )}
-        </div>
-    )
-}
 
-<ConfirmModal
-    isOpen={!!deleteConfirmMem}
-    onClose={() => setDeleteConfirmMem(null)}
-    onConfirm={handleDelete}
-    title="¿Borrar recuerdo?"
-    message="¿Seguro que quieres borrar este recuerdo? 😢"
-    confirmText="Borrar"
-    cancelText="Mmm... mejor no"
-    isDestructive={true}
-/>
-        </div >
+            <ConfirmModal
+                isOpen={!!deleteConfirmMem}
+                onClose={() => setDeleteConfirmMem(null)}
+                onConfirm={handleDelete}
+                title="¿Borrar recuerdo?"
+                message="¿Seguro que quieres borrar este recuerdo? 😢"
+                confirmText="Borrar"
+                cancelText="Mmm... mejor no"
+                isDestructive={true}
+            />
+        </div>
     );
 };
 
