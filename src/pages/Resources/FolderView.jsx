@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import { ArrowLeft, Search, Plus, File, Link as LinkIcon, StickyNote, MoreVertical, Loader2, Trash2, FolderInput, Folder, X, AlertTriangle } from 'lucide-react';
 import ConfirmModal from '../../components/ui/ConfirmModal';
@@ -17,10 +18,9 @@ const FolderView = () => {
     const [addModalType, setAddModalType] = useState(null); // 'file', 'link', 'note'
 
     // Form states
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState(''); // for notes or link url
+    const [newResource, setNewResource] = useState({ title: '', content: '' });
     const [file, setFile] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     // Context menu & action states
     const [contextMenuResourceId, setContextMenuResourceId] = useState(null);
@@ -81,20 +81,20 @@ const FolderView = () => {
 
     const handleAddResource = async (e) => {
         e.preventDefault();
-        if (!title.trim()) return;
+        if (!newResource.title.trim()) return;
 
-        setSubmitting(true);
+        setUploading(true);
         try {
             let resourceData = {
                 folder_id: folderId,
-                title: title,
+                title: newResource.title,
                 type: addModalType
             };
 
             if (addModalType === 'note') {
-                resourceData.content = content;
+                resourceData.content = newResource.content;
             } else if (addModalType === 'link') {
-                resourceData.url = content;
+                resourceData.url = newResource.content;
             } else if (addModalType === 'file') {
                 if (!file) return;
 
@@ -134,14 +134,13 @@ const FolderView = () => {
             console.error('Error adding resource:', error);
             alert('Error al guardar: ' + error.message);
         } finally {
-            setSubmitting(false);
+            setUploading(false);
         }
     };
 
     const closeModal = () => {
         setAddModalType(null);
-        setTitle('');
-        setContent('');
+        setNewResource({ title: '', content: '' });
         setFile(null);
         setShowAddMenu(false);
     };
@@ -371,66 +370,75 @@ const FolderView = () => {
                 </button>
             </div>
 
-            {/* Add Resource Modal */}
-            {addModalType && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            {addModalType === 'note' && <><StickyNote className="text-yellow-500" /> Nueva Nota</>}
-                            {addModalType === 'link' && <><LinkIcon className="text-green-500" /> Nuevo Enlace</>}
-                            {addModalType === 'file' && <><File className="text-blue-500" /> Subir Archivo</>}
-                        </h3>
+            {/* Add Resource Modal - Portaled to body */}
+            {addModalType && createPortal(
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center p-4">
+                    <div
+                        className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                                {addModalType === 'note' && <><StickyNote className="text-yellow-500" /> Nueva Nota</>}
+                                {addModalType === 'link' && <><LinkIcon className="text-green-500" /> Nuevo Enlace</>}
+                                {addModalType === 'file' && <><File className="text-blue-500" /> Subir Archivo</>}
+                            </h3>
+                            <button
+                                onClick={closeModal}
+                                className="p-2 bg-gray-100/80 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
 
-                        <form onSubmit={handleAddResource} className="space-y-4">
+                        <form onSubmit={handleAddResource} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+                                <label className="text-sm font-bold text-gray-600 ml-1 mb-1.5 block">Título</label>
                                 <input
+                                    autoFocus
                                     type="text"
-                                    required
-                                    className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-rose-200 outline-none"
-                                    placeholder={addModalType === 'note' ? 'Asunto...' : 'Nombre del archivo/enlace'}
-                                    value={title}
-                                    onChange={e => setTitle(e.target.value)}
+                                    value={newResource.title}
+                                    onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
+                                    className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-300 transition-all font-medium text-gray-700 placeholder:text-gray-400"
+                                    placeholder={addModalType === 'link' ? 'Ej: Receta de torta' : 'Asunto...'}
                                 />
                             </div>
 
                             {addModalType === 'note' && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contenido</label>
+                                    <label className="text-sm font-bold text-gray-600 ml-1 mb-1.5 block">Contenido</label>
                                     <textarea
-                                        required
-                                        rows={4}
-                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-rose-200 outline-none resize-none"
+                                        value={newResource.content}
+                                        onChange={(e) => setNewResource({ ...newResource, content: e.target.value })}
+                                        className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-300 transition-all min-h-[150px] font-medium text-gray-700 placeholder:text-gray-400 resize-none"
                                         placeholder="Escribe algo aquí..."
-                                        value={content}
-                                        onChange={e => setContent(e.target.value)}
                                     />
                                 </div>
                             )}
 
                             {addModalType === 'link' && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                                    <label className="text-sm font-bold text-gray-600 ml-1 mb-1.5 block">Enlace (URL)</label>
                                     <input
                                         type="url"
-                                        required
-                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-rose-200 outline-none"
+                                        value={newResource.content}
+                                        onChange={(e) => setNewResource({ ...newResource, content: e.target.value })}
+                                        className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-rose-300 transition-all font-medium text-gray-700 placeholder:text-gray-400"
                                         placeholder="https://..."
-                                        value={content}
-                                        onChange={e => setContent(e.target.value)}
                                     />
                                 </div>
                             )}
 
                             {addModalType === 'file' && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Archivo</label>
-                                    <input
-                                        type="file"
-                                        required
-                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100"
-                                        onChange={e => setFile(e.target.files[0])}
-                                    />
+                                    <label className="text-sm font-bold text-gray-600 ml-1 mb-1.5 block">Seleccionar Archivo</label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            onChange={(e) => setFile(e.target.files[0])}
+                                            className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition-all cursor-pointer"
+                                        />
+                                    </div>
                                 </div>
                             )}
 
@@ -438,22 +446,23 @@ const FolderView = () => {
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                                    className="flex-1 py-3.5 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={submitting}
-                                    className="flex-1 py-3 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 shadow-lg shadow-rose-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    disabled={uploading}
+                                    className="flex-1 py-3.5 bg-rose-500 text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform shadow-rose-200 flex items-center justify-center gap-2"
                                 >
-                                    {submitting && <Loader2 size={16} className="animate-spin" />}
-                                    {submitting ? 'Guardando...' : 'Guardar'}
+                                    {uploading && <Loader2 size={16} className="animate-spin" />}
+                                    {uploading ? 'Guardando...' : 'Guardar'}
                                 </button>
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Delete Confirmation Modal */}
