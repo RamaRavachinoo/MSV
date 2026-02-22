@@ -20,6 +20,7 @@ const CategoryView = lazy(() => import('./pages/OurThings/CategoryView'));
 const FlowerGardenPage = lazy(() => import('./pages/FlowerGardenPage'));
 const ResourcesHome = lazy(() => import('./pages/Resources/ResourcesHome'));
 const FolderView = lazy(() => import('./pages/Resources/FolderView'));
+const CareerPage = lazy(() => import('./pages/CareerPage'));
 
 // Loading Fallback Component
 const LoadingFallback = () => (
@@ -55,6 +56,7 @@ function App() {
                 <Route path="our-things/:categoryId" element={<CategoryView />} />
                 <Route path="resources" element={<ResourcesHome />} />
                 <Route path="resources/:folderId" element={<FolderView />} />
+                <Route path="carrera" element={<CareerPage />} />
               </Route>
             </Route>
           </Routes>

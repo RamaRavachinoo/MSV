@@ -251,6 +251,15 @@ const Dashboard = () => {
                     borderColor="border-blue-200/50"
                     onClick={() => navigate('/expenses')}
                 />
+                <QuickCard
+                    emoji="📚"
+                    title="Carrera"
+                    subtitle="Abogacía UBA"
+                    delay={0.75}
+                    color="bg-indigo-100/40"
+                    borderColor="border-indigo-200/50"
+                    onClick={() => navigate('/carrera')}
+                />
             </div>
         </div>
     );
