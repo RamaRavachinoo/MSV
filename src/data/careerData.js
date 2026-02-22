@@ -1,5 +1,6 @@
 // Datos del Plan de Estudios - Abogacía UBA (Plan 2004/2008)
 
+// ─── CBC: Ciclo Básico Común ──────────────────────────────────────────────────
 export const CBC_SUBJECTS = [
   { id: 'cbc-1', code: 'cbc-1', name: 'Principios Generales del Derecho Privado', group: 'CBC' },
   { id: 'cbc-2', code: 'cbc-2', name: 'Pensamiento Científico', group: 'CBC' },
@@ -9,35 +10,63 @@ export const CBC_SUBJECTS = [
   { id: 'cbc-6', code: 'cbc-6', name: 'Principios de DDHH y Derecho Constitucional', group: 'CBC' },
 ];
 
-export const CPO_SUBJECTS = [
+// ─── CPC: Ciclo Profesional Común (14 materias) ───────────────────────────────
+export const CPC_SUBJECTS = [
+  // Año 1 del CPC
   { code: '131', name: 'Teoría General del Derecho', year: 1, isAnnual: false, prerequisites: [] },
   { code: '132', name: 'Teoría del Estado', year: 1, isAnnual: false, prerequisites: [] },
   { code: '133', name: 'Derechos Humanos y Garantías', year: 1, isAnnual: false, prerequisites: [] },
-  { code: '134', name: 'Derecho Constitucional', year: 2, isAnnual: false, prerequisites: ['132'] },
+  { code: '144', name: 'Análisis Económico y Financiero', year: 1, isAnnual: false, prerequisites: [] },
+
+  // Año 2 del CPC
+  { code: '134', name: 'Derecho Constitucional', year: 2, isAnnual: false, prerequisites: ['132', '133'] },
   { code: '135', name: 'Elementos del Derecho Civil', year: 2, isAnnual: false, prerequisites: ['131'] },
-  { code: '136', name: 'Obligaciones Civiles y Comerciales', year: 2, isAnnual: false, prerequisites: ['135'] },
-  { code: '137', name: 'Contratos Civiles y Comerciales', year: 3, isAnnual: true, prerequisites: ['136'] },
   { code: '138', name: 'Elementos del Derecho Procesal Civil', year: 2, isAnnual: false, prerequisites: ['131'] },
   { code: '139', name: 'Derecho Penal y Procesal Penal', year: 2, isAnnual: true, prerequisites: ['133'] },
-  { code: '140', name: 'Elementos de Derechos Reales', year: 3, isAnnual: false, prerequisites: ['136'] },
-  { code: '142', name: 'Derecho del Trabajo y la Seguridad Social', year: 3, isAnnual: false, prerequisites: ['134'] },
-  { code: '144', name: 'Análisis Económico y Financiero', year: 2, isAnnual: false, prerequisites: [] },
-  { code: '145', name: 'Elementos del Derecho Comercial', year: 3, isAnnual: false, prerequisites: ['135', '144'] },
   { code: '147', name: 'Derecho Administrativo', year: 2, isAnnual: false, prerequisites: ['133'] },
-  { code: '162', name: 'Sociedades Civiles y Comerciales', year: 4, isAnnual: false, prerequisites: ['145', '140'] },
+
+  // Año 3 del CPC
+  { code: '136', name: 'Obligaciones Civiles y Comerciales', year: 3, isAnnual: false, prerequisites: ['135'] },
+  { code: '145', name: 'Elementos del Derecho Comercial', year: 3, isAnnual: false, prerequisites: ['144'] },
+  { code: '142', name: 'Derecho del Trabajo y la Seguridad Social', year: 3, isAnnual: false, prerequisites: ['134'] },
   { code: '163', name: 'Derecho Internacional Público', year: 3, isAnnual: false, prerequisites: ['134', '147'] },
-  { code: '168', name: 'Derecho Internacional Privado', year: 5, isAnnual: false, prerequisites: ['162', '197'] },
+
+  // Año 4 del CPC
+  { code: '137', name: 'Contratos Civiles y Comerciales', year: 4, isAnnual: true, prerequisites: ['136'] },
+  { code: '140', name: 'Elementos de Derechos Reales', year: 4, isAnnual: false, prerequisites: ['136'] },
+  { code: '162', name: 'Sociedades Civiles y Comerciales', year: 4, isAnnual: false, prerequisites: ['136', '145'] },
+  { code: '197', name: 'Familia y Sucesiones', year: 4, isAnnual: false, prerequisites: ['139', '136'] },
   { code: '169', name: 'Finanzas Públicas y Derecho Tributario', year: 4, isAnnual: false, prerequisites: ['163'] },
-  { code: '197', name: 'Familia y Sucesiones', year: 4, isAnnual: false, prerequisites: ['139', '137'] },
+
+  // Año 5 del CPC
+  { code: '168', name: 'Derecho Internacional Privado', year: 5, isAnnual: false, prerequisites: ['162', '197'] },
+];
+
+// ─── CPO: Ciclo Profesional Orientado ─────────────────────────────────────────
+// Materias comunes a todas las orientaciones (cursada cuatrimestral)
+export const CPO_SUBJECTS = [
+  { code: 'cpo-laboral', name: 'Derecho Laboral', group: 'CPO', isCommon: false },
+  { code: 'cpo-pub-int', name: 'Derecho Público (Int. Público)', group: 'CPO', isCommon: false },
+  { code: 'cpo-pub-adm', name: 'Derecho Público (Administrativo)', group: 'CPO', isCommon: false },
+  { code: 'cpo-penal', name: 'Derecho Penal', group: 'CPO', isCommon: false },
+  { code: 'cpo-privado', name: 'Derecho Privado', group: 'CPO', isCommon: false },
+  { code: 'cpo-notarial', name: 'Derecho Notarial', group: 'CPO', isCommon: false },
+  { code: 'cpo-economico', name: 'Derecho Económico y Empresarial', group: 'CPO', isCommon: false },
+  { code: 'cpo-tributario', name: 'Derecho Tributario', group: 'CPO', isCommon: false },
 ];
 
 export const IDIOMA = { code: 'idioma', name: 'Nivel Único de Idioma', year: 0, isAnnual: false, prerequisites: [] };
 
 export const ALL_SUBJECTS = [
   ...CBC_SUBJECTS,
+  ...CPC_SUBJECTS,
   ...CPO_SUBJECTS,
   IDIOMA,
 ];
+
+// Backward compatibility: CPO_SUBJECTS was previously CPC
+// kept for any other file that may import it as CPO_SUBJECTS referring to CPC
+export { CPC_SUBJECTS as CPO_SUBJECTS_LEGACY };
 
 export const CPO_ORIENTATIONS = [
   'Derecho Laboral',
@@ -97,7 +126,6 @@ export const EVAL_PRESETS = [
 ];
 
 // Materias del grafo organizadas por filas para layout visual
-// Cada fila representa un nivel aproximado en el flowchart
 export const GRAPH_ROWS = [
   { label: 'CBC', subjects: CBC_SUBJECTS.map(s => s.code) },
   { label: 'Año 1', subjects: ['131', '132', '133', '144'] },
@@ -105,5 +133,6 @@ export const GRAPH_ROWS = [
   { label: 'Año 3', subjects: ['136', '137', '140', '142', '145', '163'] },
   { label: 'Año 4', subjects: ['162', '169', '197'] },
   { label: 'Año 5', subjects: ['168'] },
+  { label: 'CPO', subjects: CPO_SUBJECTS.map(s => s.code) },
   { label: 'Otros', subjects: ['idioma'] },
 ];

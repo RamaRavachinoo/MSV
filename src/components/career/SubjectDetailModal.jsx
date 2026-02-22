@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, Edit3, Star, ArrowRight, Lock, CheckCircle } from 'lucide-react';
-import { STATUS_CONFIG, CPO_SUBJECTS, ALL_SUBJECTS, EVAL_PRESETS } from '../../data/careerData';
+import { STATUS_CONFIG, CPC_SUBJECTS, ALL_SUBJECTS, EVAL_PRESETS } from '../../data/careerData';
 import AddGradeModal from './AddGradeModal';
 
 const SubjectDetailModal = ({
@@ -46,8 +46,8 @@ const SubjectDetailModal = ({
 
     // Get subjects that this one unlocks
     const unlocks = useMemo(() => {
-        return CPO_SUBJECTS.filter(s =>
-            s.prerequisites.includes(subject.code)
+        return CPC_SUBJECTS.filter(s =>
+            s.prerequisites && s.prerequisites.includes(subject.code)
         ).map(s => ({ code: s.code, name: s.name }));
     }, [subject]);
 
@@ -127,11 +127,10 @@ const SubjectDetailModal = ({
                                 <button
                                     key={key}
                                     onClick={() => onStatusChange(key)}
-                                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all border-2 ${
-                                        currentStatus === key
-                                            ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-sm`
-                                            : 'border-gray-200 text-gray-400 hover:border-gray-300'
-                                    }`}
+                                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all border-2 ${currentStatus === key
+                                        ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-sm`
+                                        : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                                        }`}
                                 >
                                     {cfg.label}
                                 </button>
@@ -147,9 +146,8 @@ const SubjectDetailModal = ({
                                 {prerequisites.map(p => (
                                     <div
                                         key={p.code}
-                                        className={`flex items-center gap-2 p-2.5 rounded-xl text-xs ${
-                                            p.approved ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
-                                        }`}
+                                        className={`flex items-center gap-2 p-2.5 rounded-xl text-xs ${p.approved ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+                                            }`}
                                     >
                                         {p.approved ? (
                                             <CheckCircle size={14} className="text-green-500 shrink-0" />
@@ -218,12 +216,11 @@ const SubjectDetailModal = ({
                                         animate={{ opacity: 1 }}
                                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl group"
                                     >
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                                            g.grade >= 7 ? 'bg-green-100 text-green-700' :
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${g.grade >= 7 ? 'bg-green-100 text-green-700' :
                                             g.grade >= 4 ? 'bg-amber-100 text-amber-700' :
-                                            g.grade != null ? 'bg-red-100 text-red-600' :
-                                            'bg-gray-100 text-gray-400'
-                                        }`}>
+                                                g.grade != null ? 'bg-red-100 text-red-600' :
+                                                    'bg-gray-100 text-gray-400'
+                                            }`}>
                                             {g.grade != null ? g.grade : '-'}
                                         </div>
                                         <div className="flex-1 min-w-0">

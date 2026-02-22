@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { CBC_SUBJECTS, CPO_SUBJECTS, IDIOMA, YEAR_COLORS } from '../../data/careerData';
+import { CBC_SUBJECTS, CPC_SUBJECTS, CPO_SUBJECTS, IDIOMA, YEAR_COLORS } from '../../data/careerData';
 import SubjectNode from './SubjectNode';
 
 const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
@@ -12,10 +12,10 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
         );
     };
 
-    // Group CPO subjects by year
+    // Group CPC subjects by year
     const subjectsByYear = useMemo(() => {
         const groups = {};
-        CPO_SUBJECTS.forEach(s => {
+        CPC_SUBJECTS.forEach(s => {
             if (!groups[s.year]) groups[s.year] = [];
             groups[s.year].push(s);
         });
@@ -35,6 +35,7 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
                 <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full bg-slate-400" />
                     <h4 className="text-sm font-bold text-slate-600 uppercase tracking-wider">CBC</h4>
+                    <span className="text-xs text-slate-400 ml-1">Ciclo Básico Común</span>
                     <span className="text-xs text-slate-400 ml-auto">
                         {CBC_SUBJECTS.filter(s => subjectStatuses[s.code]?.status === 'aprobada').length}/{CBC_SUBJECTS.length}
                     </span>
@@ -53,7 +54,7 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
                 </div>
             </motion.div>
 
-            {/* CPO by Year */}
+            {/* CPC by Year */}
             {years.map((year, yi) => {
                 const subjects = subjectsByYear[year];
                 const colors = YEAR_COLORS[year] || YEAR_COLORS[1];
@@ -70,7 +71,7 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
                         <div className="flex items-center gap-2 mb-3">
                             <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: colors.accent }} />
                             <h4 className={`text-sm font-bold uppercase tracking-wider ${colors.text}`}>
-                                Año {year}
+                                Año {year} — CPC
                             </h4>
                             <span className="text-xs text-gray-400 ml-auto">
                                 {approved}/{subjects.length}
@@ -115,7 +116,7 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
             >
                 <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full bg-slate-400" />
-                    <h4 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Otros</h4>
+                    <h4 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Idioma</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <SubjectNode
@@ -124,6 +125,36 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
                         isBlocked={false}
                         onClick={onSelectSubject}
                     />
+                </div>
+            </motion.div>
+
+            {/* CPO Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="glass-card rounded-2xl p-4 border-2 border-purple-200"
+            >
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    <h4 className="text-sm font-bold text-purple-700 uppercase tracking-wider">CPO</h4>
+                    <span className="text-xs text-purple-400 ml-1">Ciclo Profesional Orientado</span>
+                    <span className="text-xs text-purple-400 ml-auto">
+                        {CPO_SUBJECTS.filter(s => subjectStatuses[s.code]?.status === 'aprobada').length}/{CPO_SUBJECTS.length}
+                    </span>
+                </div>
+                <p className="text-[10px] text-purple-400 mb-3">Elegís una orientación y cursás sus materias</p>
+                <div className="grid grid-cols-2 gap-2">
+                    {CPO_SUBJECTS.map((subject, i) => (
+                        <SubjectNode
+                            key={subject.code}
+                            subject={subject}
+                            status={subjectStatuses[subject.code]}
+                            isBlocked={false}
+                            onClick={onSelectSubject}
+                            delay={i * 0.03}
+                        />
+                    ))}
                 </div>
             </motion.div>
         </div>

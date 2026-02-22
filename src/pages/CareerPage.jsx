@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Plus, BookOpen, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { ALL_SUBJECTS, CPO_SUBJECTS, CBC_SUBJECTS, IDIOMA } from '../data/careerData';
+import { ALL_SUBJECTS, CPC_SUBJECTS, CBC_SUBJECTS, IDIOMA } from '../data/careerData';
 import WeeklySchedule from '../components/career/WeeklySchedule';
 import SubjectGraph from '../components/career/SubjectGraph';
 import SubjectDetailModal from '../components/career/SubjectDetailModal';
@@ -291,22 +291,20 @@ const CareerPage = () => {
             >
                 <button
                     onClick={() => setActiveTab('horarios')}
-                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                        activeTab === 'horarios'
+                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === 'horarios'
                             ? 'bg-white text-romantic-600 shadow-sm'
                             : 'text-gray-500'
-                    }`}
+                        }`}
                 >
                     <Calendar size={16} />
                     Horarios
                 </button>
                 <button
                     onClick={() => setActiveTab('materias')}
-                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                        activeTab === 'materias'
+                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === 'materias'
                             ? 'bg-white text-romantic-600 shadow-sm'
                             : 'text-gray-500'
-                    }`}
+                        }`}
                 >
                     <BookOpen size={16} />
                     Materias
