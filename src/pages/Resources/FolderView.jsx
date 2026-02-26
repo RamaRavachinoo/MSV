@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import { ArrowLeft, Search, Plus, File, Link as LinkIcon, StickyNote, MoreVertical, Loader2, Trash2, FolderInput, Folder, X, AlertTriangle } from 'lucide-react';
 import ConfirmModal from '../../components/ui/ConfirmModal';
+import NoteViewModal from '../../components/OurThings/NoteViewModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -16,6 +17,8 @@ const FolderView = () => {
     const [activeTab, setActiveTab] = useState('all'); // all, file, link, note
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [addModalType, setAddModalType] = useState(null); // 'file', 'link', 'note'
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Form states
     const [newResource, setNewResource] = useState({ title: '', content: '' });
@@ -29,6 +32,7 @@ const FolderView = () => {
     const [allFolders, setAllFolders] = useState([]);
     const [loadingFolders, setLoadingFolders] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [viewingNote, setViewingNote] = useState(null);
     const contextMenuRef = useRef(null);
 
     useEffect(() => {
@@ -221,7 +225,36 @@ const FolderView = () => {
         }
     };
 
-    const filteredResources = resources.filter(r => activeTab === 'all' || r.type === activeTab);
+    const handleSaveNote = async (noteId, { title, content, tags }) => {
+        try {
+            const updateData = { title, content };
+            if (tags !== undefined) updateData.tags = tags;
+            const { error } = await supabase
+                .from('resources')
+                .update(updateData)
+                .eq('id', noteId);
+            if (error) throw error;
+            setResources(prev => prev.map(r => r.id === noteId ? { ...r, title, content, tags } : r));
+        } catch (error) {
+            console.error('Error saving note:', error);
+        }
+    };
+
+    const handleResourceClick = (resource) => {
+        if (resource.type === 'note') {
+            setViewingNote(resource);
+        } else if (resource.type === 'link' && resource.url) {
+            window.open(resource.url, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    const filteredResources = resources.filter(r => {
+        const tabMatch = activeTab === 'all' || r.type === activeTab;
+        if (!tabMatch) return false;
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        return (r.title?.toLowerCase().includes(q) || r.content?.toLowerCase().includes(q));
+    });
 
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-rose-500" /></div>;
 
@@ -232,14 +265,31 @@ const FolderView = () => {
                 <button onClick={() => navigate('/resources')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <ArrowLeft size={20} className="text-gray-600" />
                 </button>
-                <div className="flex-1">
-                    <h1 className="text-xl font-semibold text-gray-800">{folder?.name}</h1>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-semibold text-gray-800 truncate">{folder?.name}</h1>
                     <p className="text-xs text-gray-400">{resources.length} elementos</p>
                 </div>
-                <button className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
-                    <Search size={20} />
+                <button
+                    onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(''); }}
+                    className={`p-2 rounded-full transition-colors ${searchOpen ? 'bg-rose-100 text-rose-500' : 'hover:bg-gray-100 text-gray-400'}`}
+                >
+                    {searchOpen ? <X size={20} /> : <Search size={20} />}
                 </button>
             </div>
+
+            {/* Search Bar */}
+            {searchOpen && (
+                <div className="px-4 pt-3">
+                    <input
+                        autoFocus
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Buscar por título o contenido..."
+                        className="w-full px-4 py-2.5 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-rose-200 text-sm text-gray-700 placeholder:text-gray-400"
+                    />
+                </div>
+            )}
 
             {/* Filter Tabs */}
             <div className="px-4 py-4 flex gap-2 overflow-x-auto no-scrollbar">
@@ -270,7 +320,11 @@ const FolderView = () => {
                     </div>
                 ) : (
                     filteredResources.map(resource => (
-                        <div key={resource.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start group relative">
+                        <div
+                            key={resource.id}
+                            className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start group relative ${resource.type === 'note' ? 'cursor-pointer hover:shadow-md hover:border-amber-200 transition-all' : ''}`}
+                            onClick={() => handleResourceClick(resource)}
+                        >
                             {/* Icon based on type */}
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${resource.type === 'file' ? 'bg-blue-50 text-blue-500' :
                                 resource.type === 'link' ? 'bg-green-50 text-green-500' :
@@ -300,6 +354,17 @@ const FolderView = () => {
                                         resource.type === 'link' ? resource.url :
                                             format(new Date(resource.created_at), 'd MMM, HH:mm', { locale: es })}
                                 </p>
+
+                                {/* Tags */}
+                                {resource.tags && resource.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {resource.tags.map(tag => (
+                                            <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-50 text-purple-600 border border-purple-100">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {resource.url && (
                                     <a
@@ -541,6 +606,14 @@ const FolderView = () => {
                     </div>
                 </div>
             )}
+
+            {/* Note View Modal */}
+            <NoteViewModal
+                isOpen={!!viewingNote}
+                note={viewingNote}
+                onClose={() => setViewingNote(null)}
+                onSave={handleSaveNote}
+            />
         </div>
     );
 };

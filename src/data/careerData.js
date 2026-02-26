@@ -128,11 +128,7 @@ export const EVAL_PRESETS = [
 // Materias del grafo organizadas por filas para layout visual
 export const GRAPH_ROWS = [
   { label: 'CBC', subjects: CBC_SUBJECTS.map(s => s.code) },
-  { label: 'Año 1', subjects: ['131', '132', '133', '144'] },
-  { label: 'Año 2', subjects: ['134', '135', '138', '139', '147'] },
-  { label: 'Año 3', subjects: ['136', '137', '140', '142', '145', '163'] },
-  { label: 'Año 4', subjects: ['162', '169', '197'] },
-  { label: 'Año 5', subjects: ['168'] },
+  { label: 'CPC', subjects: CPC_SUBJECTS.map(s => s.code) },
   { label: 'CPO', subjects: CPO_SUBJECTS.map(s => s.code) },
   { label: 'Otros', subjects: ['idioma'] },
 ];

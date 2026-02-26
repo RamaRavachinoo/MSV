@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { CBC_SUBJECTS, CPC_SUBJECTS, CPO_SUBJECTS, IDIOMA, YEAR_COLORS } from '../../data/careerData';
+import { CBC_SUBJECTS, CPC_SUBJECTS, CPO_SUBJECTS, IDIOMA } from '../../data/careerData';
 import SubjectNode from './SubjectNode';
 
 const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
@@ -12,17 +12,7 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
         );
     };
 
-    // Group CPC subjects by year
-    const subjectsByYear = useMemo(() => {
-        const groups = {};
-        CPC_SUBJECTS.forEach(s => {
-            if (!groups[s.year]) groups[s.year] = [];
-            groups[s.year].push(s);
-        });
-        return groups;
-    }, []);
-
-    const years = Object.keys(subjectsByYear).sort((a, b) => Number(a) - Number(b));
+    const cpcApproved = CPC_SUBJECTS.filter(s => subjectStatuses[s.code]?.status === 'aprobada').length;
 
     return (
         <div className="space-y-5">
@@ -54,64 +44,54 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
                 </div>
             </motion.div>
 
-            {/* CPC by Year */}
-            {years.map((year, yi) => {
-                const subjects = subjectsByYear[year];
-                const colors = YEAR_COLORS[year] || YEAR_COLORS[1];
-                const approved = subjects.filter(s => subjectStatuses[s.code]?.status === 'aprobada').length;
+            {/* CPC — Unified Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="glass-card rounded-2xl p-4"
+            >
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <h4 className="text-sm font-bold text-blue-700 uppercase tracking-wider">CPC</h4>
+                    <span className="text-xs text-blue-400 ml-1">Ciclo Profesional Común</span>
+                    <span className="text-xs text-gray-400 ml-auto">
+                        {cpcApproved}/{CPC_SUBJECTS.length}
+                    </span>
+                </div>
 
-                return (
-                    <motion.div
-                        key={year}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 + yi * 0.08 }}
-                        className="glass-card rounded-2xl p-4"
-                    >
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: colors.accent }} />
-                            <h4 className={`text-sm font-bold uppercase tracking-wider ${colors.text}`}>
-                                Año {year} — CPC
-                            </h4>
-                            <span className="text-xs text-gray-400 ml-auto">
-                                {approved}/{subjects.length}
-                            </span>
-                        </div>
-
-                        {/* Prerequisite hints */}
-                        {subjects.some(s => s.prerequisites.length > 0) && (
-                            <div className="mb-3 flex flex-wrap gap-1.5">
-                                {subjects.filter(s => s.prerequisites.length > 0).map(s => (
-                                    <div key={s.code} className="text-[9px] text-gray-400 bg-gray-50 rounded-full px-2 py-0.5">
-                                        <span className="font-semibold">{s.code}</span>
-                                        {' ← '}
-                                        {s.prerequisites.join(', ')}
-                                    </div>
-                                ))}
+                {/* Prerequisite hints */}
+                {CPC_SUBJECTS.some(s => s.prerequisites.length > 0) && (
+                    <div className="mb-3 flex flex-wrap gap-1.5">
+                        {CPC_SUBJECTS.filter(s => s.prerequisites.length > 0).map(s => (
+                            <div key={s.code} className="text-[9px] text-gray-400 bg-gray-50 rounded-full px-2 py-0.5">
+                                <span className="font-semibold">{s.code}</span>
+                                {' ← '}
+                                {s.prerequisites.join(', ')}
                             </div>
-                        )}
+                        ))}
+                    </div>
+                )}
 
-                        <div className="grid grid-cols-2 gap-2">
-                            {subjects.map((subject, i) => (
-                                <SubjectNode
-                                    key={subject.code}
-                                    subject={subject}
-                                    status={subjectStatuses[subject.code]}
-                                    isBlocked={isBlocked(subject)}
-                                    onClick={onSelectSubject}
-                                    delay={0.05 + i * 0.03}
-                                />
-                            ))}
-                        </div>
-                    </motion.div>
-                );
-            })}
+                <div className="grid grid-cols-2 gap-2">
+                    {CPC_SUBJECTS.map((subject, i) => (
+                        <SubjectNode
+                            key={subject.code}
+                            subject={subject}
+                            status={subjectStatuses[subject.code]}
+                            isBlocked={isBlocked(subject)}
+                            onClick={onSelectSubject}
+                            delay={0.05 + i * 0.03}
+                        />
+                    ))}
+                </div>
+            </motion.div>
 
             {/* Idioma */}
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.3 }}
                 className="glass-card rounded-2xl p-4"
             >
                 <div className="flex items-center gap-2 mb-3">
@@ -132,7 +112,7 @@ const SubjectGraph = ({ subjectStatuses, onSelectSubject }) => {
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.4 }}
                 className="glass-card rounded-2xl p-4 border-2 border-purple-200"
             >
                 <div className="flex items-center gap-2 mb-1">

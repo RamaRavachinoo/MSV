@@ -18,8 +18,8 @@ const CareerStats = ({ subjectStatuses, grades }) => {
             else pendientes++;
         });
 
-        // Average grade across all grades
-        const allGrades = Object.values(grades).flat().filter(g => g.grade != null);
+        // Average grade — only finals count
+        const allGrades = Object.values(grades).flat().filter(g => g.grade != null && g.eval_name === 'Final');
         const avgGrade = allGrades.length > 0
             ? (allGrades.reduce((sum, g) => sum + Number(g.grade), 0) / allGrades.length).toFixed(1)
             : null;

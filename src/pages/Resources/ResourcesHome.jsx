@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { Folder, Plus, FolderPlus, ArrowRight, FileText, Link as LinkIcon, StickyNote, Trash2, AlertTriangle, Loader2, MoreVertical } from 'lucide-react';
+import { Folder, Plus, FolderPlus, ArrowRight, FileText, Link as LinkIcon, StickyNote, Trash2, AlertTriangle, Loader2, MoreVertical, Search, X } from 'lucide-react';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -15,10 +15,35 @@ const ResourcesHome = () => {
     const [creating, setCreating] = useState(false);
     const [deleteFolderConfirm, setDeleteFolderConfirm] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searching, setSearching] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
 
     useEffect(() => {
         fetchFolders();
     }, []);
+
+    const handleGlobalSearch = async (query) => {
+        if (!query.trim() || query.trim().length < 2) return;
+        setSearching(true);
+        try {
+            const q = `%${query.trim()}%`;
+            const { data, error } = await supabase
+                .from('resources')
+                .select('*')
+                .or(`title.ilike.${q},content.ilike.${q}`)
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (error) throw error;
+            setSearchResults(data || []);
+        } catch (e) {
+            console.error('Search error:', e);
+        } finally {
+            setSearching(false);
+        }
+    };
 
     const fetchFolders = async () => {
         try {
@@ -105,10 +130,74 @@ const ResourcesHome = () => {
     return (
         <div className="min-h-screen pb-20">
             {/* Header */}
-            <header className="mb-8">
+            <header className="mb-6">
                 <h1 className="text-3xl font-serif text-gray-800 mb-2">Mi Espacio</h1>
                 <p className="text-gray-500">Un lugar para tus documentos, enlaces y notas personales.</p>
             </header>
+
+            {/* Global Search */}
+            <div className="mb-6">
+                <div className="relative">
+                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            if (e.target.value.trim().length >= 2) {
+                                handleGlobalSearch(e.target.value);
+                            } else {
+                                setSearchResults([]);
+                            }
+                        }}
+                        placeholder="Buscar en todas las carpetas..."
+                        className="w-full pl-10 pr-10 py-3 bg-white/60 backdrop-blur-sm rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 text-sm text-gray-700 placeholder:text-gray-400 border border-gray-100"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => { setSearchQuery(''); setSearchResults([]); }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+                        >
+                            <X size={16} className="text-gray-400" />
+                        </button>
+                    )}
+                </div>
+
+                {/* Search Results */}
+                {searchQuery.trim().length >= 2 && (
+                    <div className="mt-3 space-y-2">
+                        {searching ? (
+                            <div className="flex justify-center py-4">
+                                <Loader2 size={20} className="animate-spin text-rose-400" />
+                            </div>
+                        ) : searchResults.length === 0 ? (
+                            <p className="text-center text-sm text-gray-400 py-4">No se encontraron resultados</p>
+                        ) : (
+                            searchResults.map(r => (
+                                <div
+                                    key={r.id}
+                                    onClick={() => navigate(`/resources/${r.folder_id}`)}
+                                    className="bg-white/70 p-3 rounded-xl border border-gray-100 flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow"
+                                >
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${r.type === 'file' ? 'bg-blue-50 text-blue-500' :
+                                        r.type === 'link' ? 'bg-green-50 text-green-500' :
+                                            'bg-yellow-50 text-yellow-500'
+                                        }`}>
+                                        {r.type === 'file' && <FileText size={14} />}
+                                        {r.type === 'link' && <LinkIcon size={14} />}
+                                        {r.type === 'note' && <StickyNote size={14} />}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-800 truncate">{r.title}</p>
+                                        {r.content && <p className="text-xs text-gray-400 truncate">{r.content}</p>}
+                                    </div>
+                                    <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
 
             {/* Content */}
             {loading ? (

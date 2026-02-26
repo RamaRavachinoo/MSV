@@ -26,7 +26,7 @@ const SubjectDetailModal = ({
     const currentStatus = status?.status || 'pendiente';
 
     const avgGrade = useMemo(() => {
-        const valid = grades.filter(g => g.grade != null && g.grade !== '');
+        const valid = grades.filter(g => g.grade != null && g.grade !== '' && g.eval_name === 'Final');
         if (valid.length === 0) return null;
         return (valid.reduce((sum, g) => sum + Number(g.grade), 0) / valid.length).toFixed(1);
     }, [grades]);

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 // Sub-components
 import ExpensesView from '../components/expenses/ExpensesView';
@@ -18,10 +19,6 @@ const ExpensesPage = () => {
     const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'goals'
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Summary State
-    const [totalIncome, setTotalIncome] = useState(0);
-    const [totalExpense, setTotalExpense] = useState(0);
     const [userName, setUserName] = useState('');
 
     // Modal State for Transactions
@@ -29,6 +26,10 @@ const ExpensesPage = () => {
     const [editingTx, setEditingTx] = useState(null);
     const [deleteConfirmTx, setDeleteConfirmTx] = useState(null);
 
+    // Month selector
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
     useEffect(() => {
         fetchTransactions();
@@ -63,7 +64,6 @@ const ExpensesPage = () => {
 
             const txs = data || [];
             setTransactions(txs);
-            calculateSummary(txs);
         } catch (error) {
             console.error('Error fetching transactions:', error);
         } finally {
@@ -71,12 +71,45 @@ const ExpensesPage = () => {
         }
     };
 
-    const calculateSummary = (txs) => {
-        const income = txs.filter(t => t.type === 'income').reduce((acc, curr) => acc + Number(curr.amount), 0);
-        const expense = txs.filter(t => t.type === 'expense').reduce((acc, curr) => acc + Number(curr.amount), 0);
-        setTotalIncome(income);
-        setTotalExpense(expense);
+    // Filter transactions by selected month
+    const filteredTransactions = useMemo(() => {
+        return transactions.filter(tx => {
+            const d = new Date(tx.date);
+            return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+        });
+    }, [transactions, selectedMonth, selectedYear]);
+
+    const monthlyIncome = useMemo(() => {
+        return filteredTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.amount), 0);
+    }, [filteredTransactions]);
+
+    const monthlyExpense = useMemo(() => {
+        return filteredTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + Number(t.amount), 0);
+    }, [filteredTransactions]);
+
+    const goToPrevMonth = () => {
+        if (selectedMonth === 0) {
+            setSelectedMonth(11);
+            setSelectedYear(y => y - 1);
+        } else {
+            setSelectedMonth(m => m - 1);
+        }
     };
+
+    const goToNextMonth = () => {
+        const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
+        if (isCurrentMonth) return;
+        if (selectedMonth === 11) {
+            setSelectedMonth(0);
+            setSelectedYear(y => y + 1);
+        } else {
+            setSelectedMonth(m => m + 1);
+        }
+    };
+
+    const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
+
+    const monthLabel = format(new Date(selectedYear, selectedMonth, 1), 'MMMM yyyy', { locale: es });
 
     const handleDeleteTransaction = async () => {
         if (!deleteConfirmTx) return;
@@ -136,6 +169,26 @@ const ExpensesPage = () => {
                 </div>
             </header>
 
+            {/* Month Selector */}
+            <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm px-4 py-3 mb-4">
+                <button onClick={goToPrevMonth} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <ChevronLeft size={20} className="text-gray-600" />
+                </button>
+                <div className="text-center">
+                    <p className="font-serif font-semibold text-gray-800 capitalize">{monthLabel}</p>
+                    {isCurrentMonth && (
+                        <span className="text-[10px] bg-romantic-100 text-romantic-600 px-2 py-0.5 rounded-full font-medium">Mes actual</span>
+                    )}
+                </div>
+                <button
+                    onClick={goToNextMonth}
+                    disabled={isCurrentMonth}
+                    className={`p-2 rounded-full transition-colors ${isCurrentMonth ? 'text-gray-200' : 'hover:bg-gray-100 text-gray-600'}`}
+                >
+                    <ChevronRight size={20} />
+                </button>
+            </div>
+
             {/* Tabs */}
             <div className="flex p-1 bg-white rounded-xl shadow-sm mb-6">
                 <button
@@ -158,9 +211,9 @@ const ExpensesPage = () => {
                 {activeTab === 'expenses' ? (
                     <ExpensesView
                         key="expenses"
-                        transactions={transactions}
-                        income={totalIncome}
-                        expense={totalExpense}
+                        transactions={filteredTransactions}
+                        income={monthlyIncome}
+                        expense={monthlyExpense}
                         onEdit={openEditModal}
                         onDelete={confirmDeleteTransaction}
                     />

@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Calendar, Clock } from 'lucide-react';
 import TimeTogether from '../components/timer/TimeTogether';
+import WeatherWidget from '../components/ui/WeatherWidget';
+import UpcomingExamsWidget from '../components/career/UpcomingExamsWidget';
 import { supabase } from '../lib/supabase';
 import { photoDescriptions } from '../data/photoDescriptions';
 import { differenceInDays, parseISO } from 'date-fns';
@@ -119,6 +121,12 @@ const Dashboard = () => {
             >
                 <TimeTogether />
             </motion.div>
+
+            {/* Weather Widget */}
+            <WeatherWidget />
+
+            {/* Upcoming Exams */}
+            <UpcomingExamsWidget />
 
             {/* Random Photo of the Day */}
             {randomPhoto && (
