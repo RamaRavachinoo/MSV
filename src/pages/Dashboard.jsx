@@ -128,27 +128,6 @@ const Dashboard = () => {
             {/* Upcoming Exams */}
             <UpcomingExamsWidget />
 
-            {/* Random Photo of the Day */}
-            {randomPhoto && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="glass-card rounded-3xl overflow-hidden cursor-pointer"
-                    onClick={() => navigate('/gallery')}
-                >
-                    <img
-                        src={randomPhoto.url}
-                        alt="Recuerdo"
-                        className="w-full h-auto"
-                    />
-                    <div className="p-4">
-                        <p className="text-xs text-romantic-400 uppercase tracking-widest font-bold mb-1">Recuerdo del Día</p>
-                        <p className="font-serif text-gray-800 text-sm leading-relaxed">{randomPhoto.description}</p>
-                    </div>
-                </motion.div>
-            )}
-
             {/* Next Upcoming Events */}
             {nextEvents.length > 0 && (
                 <div className="space-y-3">
@@ -278,6 +257,27 @@ const Dashboard = () => {
                     onClick={() => navigate('/our-home')}
                 />
             </div>
+
+            {/* Random Photo of the Day */}
+            {randomPhoto && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="glass-card rounded-3xl overflow-hidden cursor-pointer"
+                    onClick={() => navigate('/gallery')}
+                >
+                    <img
+                        src={randomPhoto.url}
+                        alt="Recuerdo"
+                        className="w-full h-auto"
+                    />
+                    <div className="p-4">
+                        <p className="text-xs text-romantic-400 uppercase tracking-widest font-bold mb-1">Recuerdo del Día</p>
+                        <p className="font-serif text-gray-800 text-sm leading-relaxed">{randomPhoto.description}</p>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 };
