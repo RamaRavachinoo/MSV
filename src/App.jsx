@@ -21,6 +21,12 @@ const FlowerGardenPage = lazy(() => import('./pages/FlowerGardenPage'));
 const ResourcesHome = lazy(() => import('./pages/Resources/ResourcesHome'));
 const FolderView = lazy(() => import('./pages/Resources/FolderView'));
 const CareerPage = lazy(() => import('./pages/CareerPage'));
+const OurHomePage = lazy(() => import('./pages/OurHome/OurHomePage'));
+const ShoppingListPage = lazy(() => import('./pages/OurHome/ShoppingListPage'));
+const ApartmentNotesPage = lazy(() => import('./pages/OurHome/ApartmentNotesPage'));
+const InspirationBoardPage = lazy(() => import('./pages/OurHome/InspirationBoardPage'));
+const MovingBudgetPage = lazy(() => import('./pages/OurHome/MovingBudgetPage'));
+const MovingChecklistPage = lazy(() => import('./pages/OurHome/MovingChecklistPage'));
 
 // Loading Fallback Component
 const LoadingFallback = () => (
@@ -57,6 +63,12 @@ function App() {
                 <Route path="resources" element={<ResourcesHome />} />
                 <Route path="resources/:folderId" element={<FolderView />} />
                 <Route path="carrera" element={<CareerPage />} />
+                <Route path="our-home" element={<OurHomePage />} />
+                <Route path="our-home/shopping" element={<ShoppingListPage />} />
+                <Route path="our-home/apartments" element={<ApartmentNotesPage />} />
+                <Route path="our-home/inspiration" element={<InspirationBoardPage />} />
+                <Route path="our-home/budget" element={<MovingBudgetPage />} />
+                <Route path="our-home/checklist" element={<MovingChecklistPage />} />
               </Route>
             </Route>
           </Routes>

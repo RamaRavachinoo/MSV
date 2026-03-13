@@ -268,6 +268,15 @@ const Dashboard = () => {
                     borderColor="border-indigo-200/50"
                     onClick={() => navigate('/carrera')}
                 />
+                <QuickCard
+                    emoji="🏠"
+                    title="Nuestro Hogar"
+                    subtitle="Nuestro futuro"
+                    delay={0.8}
+                    color="bg-teal-100/40"
+                    borderColor="border-teal-200/50"
+                    onClick={() => navigate('/our-home')}
+                />
             </div>
         </div>
     );
