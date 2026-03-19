@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, X, Trash2, ExternalLink, Palette, Image, Pencil, Upload
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -63,7 +64,7 @@ const InspirationBoardPage = () => {
     };
 
     const handleSave = async () => {
-        if (!form.title.trim()) return;
+        const finalTitle = form.title.trim() || 'Idea de diseño';
         setUploading(true);
         try {
             let finalImageUrl = form.image_url;
@@ -74,20 +75,20 @@ const InspirationBoardPage = () => {
                 const filePath = `${user?.id || 'public'}/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('photos')
+                    .from('memories')
                     .upload(filePath, form.file);
 
                 if (uploadError) throw uploadError;
 
                 const { data: { publicUrl } } = supabase.storage
-                    .from('photos')
+                    .from('memories')
                     .getPublicUrl(filePath);
 
                 finalImageUrl = publicUrl;
             }
 
             const payload = {
-                title: form.title,
+                title: finalTitle,
                 room: form.room,
                 image_url: finalImageUrl,
                 notes: form.notes,
@@ -254,98 +255,104 @@ const InspirationBoardPage = () => {
             )}
 
             {/* Add/Edit Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
-                        style={{ zIndex: 9999 }}
-                        onClick={resetForm}
-                    >
-                        <motion.div
-                            initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div className="flex justify-between items-center mb-5">
-                                <h2 className="text-xl font-serif font-bold text-gray-800">
-                                    {editingId ? 'Editar Idea' : 'Nueva Idea'} 🎨
-                                </h2>
-                                <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
-                                    <X size={20} className="text-gray-400" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Título *</label>
-                                    <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                                        placeholder="ej: Mesa ratona de madera"
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition-all text-sm" />
+            {createPortal(
+                <AnimatePresence>
+                    {showModal && (
+                        <>
+                            <motion.div
+                                key="backdrop"
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                                onClick={resetForm}
+                            />
+                            <motion.div
+                                key="modal"
+                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md bg-white rounded-t-3xl p-6 z-[9999] shadow-2xl max-h-[90vh] overflow-y-auto pb-8"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="flex justify-between items-center mb-5">
+                                    <h2 className="text-xl font-serif font-bold text-gray-800">
+                                        {editingId ? 'Editar Idea' : 'Nueva Idea'} 🎨
+                                    </h2>
+                                    <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
+                                        <X size={20} className="text-gray-400" />
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ambiente</label>
-                                    <select value={form.room} onChange={e => setForm({ ...form, room: e.target.value })}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm bg-white">
-                                        {ROOMS.filter(r => r !== 'Todos').map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Foto de Inspiración</label>
-                                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center relative bg-gray-50 h-40 flex flex-col items-center justify-center overflow-hidden">
-                                        {(form.previewUrl || form.image_url) ? (
-                                            <div className="relative w-full h-full">
-                                                <img src={form.previewUrl || form.image_url} alt="Preview" className="w-full h-full object-contain rounded-xl" />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setForm({ ...form, file: null, previewUrl: null, image_url: '' })}
-                                                    className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-xl rounded-tr-xl hover:bg-black/70 transition-colors"
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mb-2 text-pink-400">
-                                                    <Upload size={20} />
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Foto de Inspiración *</label>
+                                        <div className="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center relative bg-gray-50 h-40 flex flex-col items-center justify-center overflow-hidden">
+                                            {(form.previewUrl || form.image_url) ? (
+                                                <div className="relative w-full h-full">
+                                                    <img src={form.previewUrl || form.image_url} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setForm({ ...form, file: null, previewUrl: null, image_url: '' })}
+                                                        className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-xl rounded-tr-xl hover:bg-black/70 transition-colors"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
                                                 </div>
-                                                <p className="text-sm text-gray-500 font-medium">Toca para subir una foto</p>
-                                            </>
-                                        )}
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                        />
+                                            ) : (
+                                                <>
+                                                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mb-2 text-pink-400">
+                                                        <Upload size={20} />
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 font-medium">Toca para subir una foto</p>
+                                                </>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Link de origen (opcional)</label>
-                                    <input type="url" value={form.source_link} onChange={e => setForm({ ...form, source_link: e.target.value })}
-                                        placeholder="https://..."
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm" />
-                                </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Título (Opcional)</label>
+                                        <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                                            placeholder="ej: Mesa ratona de madera"
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition-all text-sm" />
+                                    </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notas</label>
-                                    <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-                                        placeholder="¿Por qué te gusta?" rows={2}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm resize-none" />
-                                </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ambiente</label>
+                                        <select value={form.room} onChange={e => setForm({ ...form, room: e.target.value })}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm bg-white">
+                                            {ROOMS.filter(r => r !== 'Todos').map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
+                                    </div>
 
-                                <button onClick={handleSave} disabled={uploading || !form.title.trim()}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
-                                    {uploading ? 'Guardando...' : editingId ? 'Guardar Cambios' : 'Agregar Idea'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Link de origen (opcional)</label>
+                                        <input type="url" value={form.source_link} onChange={e => setForm({ ...form, source_link: e.target.value })}
+                                            placeholder="https://..."
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm" />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notas</label>
+                                        <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                                            placeholder="¿Por qué te gusta?" rows={2}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm resize-none" />
+                                    </div>
+
+                                    <button onClick={handleSave} disabled={uploading || (!form.title.trim() && !form.file && !form.image_url)}
+                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
+                                        {uploading ? 'Guardando...' : editingId ? 'Guardar Cambios' : 'Agregar Idea'}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             {/* Lightbox */}
             <AnimatePresence>

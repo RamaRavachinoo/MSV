@@ -5,6 +5,7 @@ import {
     ArrowLeft, Plus, X, Star, MapPin, Trash2,
     ChevronDown, ChevronUp, Building2, DollarSign
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 
 const STATUS_CONFIG = {
@@ -268,101 +269,107 @@ const ApartmentNotesPage = () => {
             )}
 
             {/* Add/Edit Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
-                        style={{ zIndex: 9999 }}
-                        onClick={resetForm}
-                    >
-                        <motion.div
-                            initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div className="flex justify-between items-center mb-5">
-                                <h2 className="text-xl font-serif font-bold text-gray-800">
-                                    {editingId ? 'Editar Depto' : 'Nuevo Depto'} 🏢
-                                </h2>
-                                <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
-                                    <X size={20} className="text-gray-400" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre *</label>
-                                    <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                                        placeholder="ej: Depto Av. Corrientes"
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
+            {createPortal(
+                <AnimatePresence>
+                    {showModal && (
+                        <>
+                            <motion.div
+                                key="backdrop"
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                                onClick={resetForm}
+                            />
+                            <motion.div
+                                key="modal"
+                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md bg-white rounded-t-3xl p-6 z-[9999] shadow-2xl max-h-[90vh] overflow-y-auto pb-8"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="flex justify-between items-center mb-5">
+                                    <h2 className="text-xl font-serif font-bold text-gray-800">
+                                        {editingId ? 'Editar Depto' : 'Nuevo Depto'} 🏢
+                                    </h2>
+                                    <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
+                                        <X size={20} className="text-gray-400" />
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dirección</label>
-                                    <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
-                                        placeholder="ej: Av. Corrientes 1234"
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm" />
-                                </div>
-
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Puntuación</label>
-                                    <StarRating rating={form.rating} onChange={r => setForm({ ...form, rating: r })} size={24} />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Alquiler</label>
-                                        <input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
-                                            placeholder="$0"
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre *</label>
+                                        <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                                            placeholder="ej: Depto Av. Corrientes"
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dirección</label>
+                                        <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
+                                            placeholder="ej: Av. Corrientes 1234"
                                             className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm" />
                                     </div>
+
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Expensas</label>
-                                        <input type="number" value={form.expenses} onChange={e => setForm({ ...form, expenses: e.target.value })}
-                                            placeholder="$0"
-                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm" />
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Puntuación</label>
+                                        <StarRating rating={form.rating} onChange={r => setForm({ ...form, rating: r })} size={24} />
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</label>
-                                    <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm bg-white">
-                                        {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}
-                                    </select>
-                                </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Alquiler</label>
+                                            <input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
+                                                placeholder="$0"
+                                                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Expensas</label>
+                                            <input type="number" value={form.expenses} onChange={e => setForm({ ...form, expenses: e.target.value })}
+                                                placeholder="$0"
+                                                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm" />
+                                        </div>
+                                    </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pros (uno por línea)</label>
-                                    <textarea value={form.pros} onChange={e => setForm({ ...form, pros: e.target.value })}
-                                        placeholder="Buena luz&#10;Cerca del subte&#10;..." rows={3}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm resize-none" />
-                                </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</label>
+                                        <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm bg-white">
+                                            {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}
+                                        </select>
+                                    </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contras (uno por línea)</label>
-                                    <textarea value={form.cons} onChange={e => setForm({ ...form, cons: e.target.value })}
-                                        placeholder="Cocina chica&#10;Ruidoso&#10;..." rows={3}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm resize-none" />
-                                </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pros (uno por línea)</label>
+                                        <textarea value={form.pros} onChange={e => setForm({ ...form, pros: e.target.value })}
+                                            placeholder="Buena luz&#10;Cerca del subte&#10;..." rows={3}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm resize-none" />
+                                    </div>
 
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notas</label>
-                                    <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-                                        placeholder="Observaciones..." rows={2}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm resize-none" />
-                                </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contras (uno por línea)</label>
+                                        <textarea value={form.cons} onChange={e => setForm({ ...form, cons: e.target.value })}
+                                            placeholder="Cocina chica&#10;Ruidoso&#10;..." rows={3}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm resize-none" />
+                                    </div>
 
-                                <button onClick={handleSave} disabled={!form.name.trim()}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
-                                    {editingId ? 'Guardar Cambios' : 'Agregar Departamento'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notas</label>
+                                        <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                                            placeholder="Observaciones..." rows={2}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 outline-none transition-all text-sm resize-none" />
+                                    </div>
+
+                                    <button onClick={handleSave} disabled={!form.name.trim()}
+                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
+                                        {editingId ? 'Guardar Cambios' : 'Agregar Departamento'}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };

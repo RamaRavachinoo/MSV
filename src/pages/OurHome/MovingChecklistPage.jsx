@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, X, Trash2, Check, ClipboardCheck, Calendar
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 
 const CATEGORIES = ['Todos', 'Trámites', 'Servicios', 'Mudanza', 'Otros'];
@@ -320,58 +321,69 @@ const MovingChecklistPage = () => {
             )}
 
             {/* Add/Edit Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
-                        style={{ zIndex: 9999 }} onClick={resetForm}>
-                        <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
-                            onClick={e => e.stopPropagation()}>
-                            <div className="flex justify-between items-center mb-5">
-                                <h2 className="text-xl font-serif font-bold text-gray-800">
-                                    {editingId ? 'Editar Tarea' : 'Nueva Tarea'} 📋
-                                </h2>
-                                <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
-                                    <X size={20} className="text-gray-400" />
-                                </button>
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tarea *</label>
-                                    <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                                        placeholder="ej: Contratar internet"
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all text-sm" />
+            {createPortal(
+                <AnimatePresence>
+                    {showModal && (
+                        <>
+                            <motion.div
+                                key="backdrop"
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                                onClick={resetForm}
+                            />
+                            <motion.div
+                                key="modal"
+                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md bg-white rounded-t-3xl p-6 z-[9999] shadow-2xl max-h-[90vh] overflow-y-auto pb-8"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="flex justify-between items-center mb-5">
+                                    <h2 className="text-xl font-serif font-bold text-gray-800">
+                                        {editingId ? 'Editar Tarea' : 'Nueva Tarea'} 📋
+                                    </h2>
+                                    <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
+                                        <X size={20} className="text-gray-400" />
+                                    </button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoría</label>
-                                        <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 outline-none transition-all text-sm bg-white">
-                                            {CATEGORIES.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tarea *</label>
+                                        <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                                            placeholder="ej: Contratar internet"
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all text-sm" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoría</label>
+                                            <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                                                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 outline-none transition-all text-sm bg-white">
+                                                {CATEGORIES.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha límite</label>
+                                            <input type="date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })}
+                                                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 outline-none transition-all text-sm" />
+                                        </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha límite</label>
-                                        <input type="date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 outline-none transition-all text-sm" />
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notas</label>
+                                        <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                                            placeholder="Notas adicionales..." rows={2}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 outline-none transition-all text-sm resize-none" />
                                     </div>
+                                    <button onClick={handleSave} disabled={!form.title.trim()}
+                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
+                                        {editingId ? 'Guardar Cambios' : 'Agregar Tarea'}
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notas</label>
-                                    <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-                                        placeholder="Notas adicionales..." rows={2}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-violet-400 outline-none transition-all text-sm resize-none" />
-                                </div>
-                                <button onClick={handleSave} disabled={!form.title.trim()}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
-                                    {editingId ? 'Guardar Cambios' : 'Agregar Tarea'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };

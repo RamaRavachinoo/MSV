@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, X, Trash2, Check, PiggyBank, TrendingUp
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 
 const CATEGORIES = ['Todos', 'Depósito', 'Comisión', 'Flete', 'Servicios', 'Compras', 'Otros'];
@@ -277,59 +278,70 @@ const MovingBudgetPage = () => {
             )}
 
             {/* Add/Edit Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
-                        style={{ zIndex: 9999 }} onClick={resetForm}>
-                        <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
-                            onClick={e => e.stopPropagation()}>
-                            <div className="flex justify-between items-center mb-5">
-                                <h2 className="text-xl font-serif font-bold text-gray-800">
-                                    {editingId ? 'Editar Gasto' : 'Nuevo Gasto'} 💰
-                                </h2>
-                                <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
-                                    <X size={20} className="text-gray-400" />
-                                </button>
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Concepto *</label>
-                                    <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                                        placeholder="ej: Depósito alquiler"
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm" />
+            {createPortal(
+                <AnimatePresence>
+                    {showModal && (
+                        <>
+                            <motion.div
+                                key="backdrop"
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                                onClick={resetForm}
+                            />
+                            <motion.div
+                                key="modal"
+                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md bg-white rounded-t-3xl p-6 z-[9999] shadow-2xl max-h-[90vh] overflow-y-auto pb-8"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="flex justify-between items-center mb-5">
+                                    <h2 className="text-xl font-serif font-bold text-gray-800">
+                                        {editingId ? 'Editar Gasto' : 'Nuevo Gasto'} 💰
+                                    </h2>
+                                    <button onClick={resetForm} className="p-2 rounded-full hover:bg-gray-100">
+                                        <X size={20} className="text-gray-400" />
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoría</label>
-                                    <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 outline-none transition-all text-sm bg-white">
-                                        {CATEGORIES.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estimado</label>
-                                        <input type="number" value={form.estimated_amount} onChange={e => setForm({ ...form, estimated_amount: e.target.value })}
-                                            placeholder="$0"
-                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 outline-none transition-all text-sm" />
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Concepto *</label>
+                                        <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                                            placeholder="ej: Depósito alquiler"
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Real (pagado)</label>
-                                        <input type="number" value={form.actual_amount} onChange={e => setForm({ ...form, actual_amount: e.target.value })}
-                                            placeholder="$0"
-                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 outline-none transition-all text-sm" />
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoría</label>
+                                        <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                                            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 outline-none transition-all text-sm bg-white">
+                                            {CATEGORIES.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
                                     </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estimado</label>
+                                            <input type="number" value={form.estimated_amount} onChange={e => setForm({ ...form, estimated_amount: e.target.value })}
+                                                placeholder="$0"
+                                                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 outline-none transition-all text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Real (pagado)</label>
+                                            <input type="number" value={form.actual_amount} onChange={e => setForm({ ...form, actual_amount: e.target.value })}
+                                                placeholder="$0"
+                                                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 outline-none transition-all text-sm" />
+                                        </div>
+                                    </div>
+                                    <button onClick={handleSave} disabled={!form.title.trim()}
+                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
+                                        {editingId ? 'Guardar Cambios' : 'Agregar Gasto'}
+                                    </button>
                                 </div>
-                                <button onClick={handleSave} disabled={!form.title.trim()}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
-                                    {editingId ? 'Guardar Cambios' : 'Agregar Gasto'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };
