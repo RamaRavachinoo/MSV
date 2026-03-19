@@ -217,8 +217,8 @@ const MovingBudgetPage = () => {
                 {CATEGORIES.map(cat => (
                     <button key={cat} onClick={() => setActiveCategory(cat)}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${activeCategory === cat
-                                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
-                                : 'bg-white/60 text-gray-500 hover:bg-white'
+                            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
+                            : 'bg-white/60 text-gray-500 hover:bg-white'
                             }`}>
                         {cat}
                     </button>
@@ -283,7 +283,7 @@ const MovingBudgetPage = () => {
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
                         style={{ zIndex: 9999 }} onClick={resetForm}>
                         <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto"
+                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
                             onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center mb-5">
                                 <h2 className="text-xl font-serif font-bold text-gray-800">

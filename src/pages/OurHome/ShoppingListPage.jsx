@@ -249,7 +249,7 @@ const ShoppingListPage = () => {
                             initial={{ y: 100, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto"
+                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-center mb-5">
@@ -304,8 +304,8 @@ const ShoppingListPage = () => {
                                                 type="button"
                                                 onClick={() => setForm({ ...form, assigned_to: form.assigned_to === name ? '' : name })}
                                                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${form.assigned_to === name
-                                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                                     }`}
                                             >
                                                 {name}

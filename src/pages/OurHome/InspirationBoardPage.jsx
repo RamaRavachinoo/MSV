@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, X, Trash2, ExternalLink, Palette, Image, Pencil
+    ArrowLeft, Plus, X, Trash2, ExternalLink, Palette, Image, Pencil, Upload
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 const ROOMS = ['Todos', 'Living', 'Cocina', 'Dormitorio', 'Baño', 'Balcón', 'Otros'];
 
@@ -19,15 +20,17 @@ const ROOM_COLORS = {
 
 const InspirationBoardPage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [activeRoom, setActiveRoom] = useState('Todos');
     const [expandedId, setExpandedId] = useState(null);
     const [lightboxItem, setLightboxItem] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     const [form, setForm] = useState({
-        title: '', room: 'Living', image_url: '', notes: '', source_link: '',
+        title: '', room: 'Living', image_url: '', notes: '', source_link: '', file: null, previewUrl: null
     });
     const [editingId, setEditingId] = useState(null);
 
@@ -48,21 +51,64 @@ const InspirationBoardPage = () => {
         }
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setForm({
+                ...form,
+                file: file,
+                previewUrl: URL.createObjectURL(file)
+            });
+        }
+    };
+
     const handleSave = async () => {
         if (!form.title.trim()) return;
+        setUploading(true);
         try {
+            let finalImageUrl = form.image_url;
+
+            if (form.file) {
+                const fileExt = form.file.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `${user?.id || 'public'}/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('photos')
+                    .upload(filePath, form.file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('photos')
+                    .getPublicUrl(filePath);
+
+                finalImageUrl = publicUrl;
+            }
+
+            const payload = {
+                title: form.title,
+                room: form.room,
+                image_url: finalImageUrl,
+                notes: form.notes,
+                source_link: form.source_link
+            };
+
             if (editingId) {
-                const { data, error } = await supabase.from('home_inspiration').update(form).eq('id', editingId).select().single();
+                const { data, error } = await supabase.from('home_inspiration').update(payload).eq('id', editingId).select().single();
                 if (error) throw error;
                 setItems(prev => prev.map(i => i.id === editingId ? data : i));
             } else {
-                const { data, error } = await supabase.from('home_inspiration').insert(form).select().single();
+                const { data, error } = await supabase.from('home_inspiration').insert(payload).select().single();
                 if (error) throw error;
                 setItems(prev => [data, ...prev]);
             }
             resetForm();
         } catch (e) {
             console.error('Error:', e);
+            alert('Error al guardar. Intenta de nuevo.');
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -80,14 +126,14 @@ const InspirationBoardPage = () => {
     const openEdit = (item) => {
         setForm({
             title: item.title, room: item.room, image_url: item.image_url || '',
-            notes: item.notes || '', source_link: item.source_link || '',
+            notes: item.notes || '', source_link: item.source_link || '', file: null, previewUrl: null
         });
         setEditingId(item.id);
         setShowModal(true);
     };
 
     const resetForm = () => {
-        setForm({ title: '', room: 'Living', image_url: '', notes: '', source_link: '' });
+        setForm({ title: '', room: 'Living', image_url: '', notes: '', source_link: '', file: null, previewUrl: null });
         setEditingId(null);
         setShowModal(false);
     };
@@ -218,7 +264,7 @@ const InspirationBoardPage = () => {
                     >
                         <motion.div
                             initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto"
+                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-center mb-5">
@@ -247,16 +293,34 @@ const InspirationBoardPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">URL de Imagen</label>
-                                    <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })}
-                                        placeholder="https://... (pegar URL de imagen)"
-                                        className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm" />
-                                    {form.image_url && (
-                                        <div className="mt-2 rounded-xl overflow-hidden border border-gray-100">
-                                            <img src={form.image_url} alt="Preview" className="w-full h-32 object-cover"
-                                                onError={e => { e.target.style.display = 'none'; }} />
-                                        </div>
-                                    )}
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Foto de Inspiración</label>
+                                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center relative bg-gray-50 h-40 flex flex-col items-center justify-center overflow-hidden">
+                                        {(form.previewUrl || form.image_url) ? (
+                                            <div className="relative w-full h-full">
+                                                <img src={form.previewUrl || form.image_url} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setForm({ ...form, file: null, previewUrl: null, image_url: '' })}
+                                                    className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-xl rounded-tr-xl hover:bg-black/70 transition-colors"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mb-2 text-pink-400">
+                                                    <Upload size={20} />
+                                                </div>
+                                                <p className="text-sm text-gray-500 font-medium">Toca para subir una foto</p>
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
@@ -273,9 +337,9 @@ const InspirationBoardPage = () => {
                                         className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 outline-none transition-all text-sm resize-none" />
                                 </div>
 
-                                <button onClick={handleSave} disabled={!form.title.trim()}
+                                <button onClick={handleSave} disabled={uploading || !form.title.trim()}
                                     className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 active:scale-[0.98]">
-                                    {editingId ? 'Guardar Cambios' : 'Agregar Idea'}
+                                    {uploading ? 'Guardando...' : editingId ? 'Guardar Cambios' : 'Agregar Idea'}
                                 </button>
                             </div>
                         </motion.div>

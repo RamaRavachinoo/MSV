@@ -246,8 +246,8 @@ const MovingChecklistPage = () => {
                 {CATEGORIES.map(cat => (
                     <button key={cat} onClick={() => setActiveCategory(cat)}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${activeCategory === cat
-                                ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md'
-                                : 'bg-white/60 text-gray-500 hover:bg-white'
+                            ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md'
+                            : 'bg-white/60 text-gray-500 hover:bg-white'
                             }`}>
                         {cat}
                     </button>
@@ -284,8 +284,8 @@ const MovingChecklistPage = () => {
                                             <div className="flex items-center gap-3">
                                                 <button onClick={() => toggleCompleted(item)}
                                                     className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${item.is_completed
-                                                            ? 'bg-violet-500 border-violet-500 text-white'
-                                                            : 'border-gray-300 hover:border-violet-400'
+                                                        ? 'bg-violet-500 border-violet-500 text-white'
+                                                        : 'border-gray-300 hover:border-violet-400'
                                                         }`}>
                                                     {item.is_completed && <Check size={14} />}
                                                 </button>
@@ -298,7 +298,7 @@ const MovingChecklistPage = () => {
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     {item.due_date && (
                                                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${item.is_completed ? 'bg-gray-100 text-gray-400'
-                                                                : isOverdue(item.due_date) ? 'bg-red-100 text-red-600' : 'bg-violet-50 text-violet-600'
+                                                            : isOverdue(item.due_date) ? 'bg-red-100 text-red-600' : 'bg-violet-50 text-violet-600'
                                                             }`}>
                                                             <Calendar size={10} />
                                                             {formatDate(item.due_date)}
@@ -326,7 +326,7 @@ const MovingChecklistPage = () => {
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
                         style={{ zIndex: 9999 }} onClick={resetForm}>
                         <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto"
+                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
                             onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center mb-5">
                                 <h2 className="text-xl font-serif font-bold text-gray-800">

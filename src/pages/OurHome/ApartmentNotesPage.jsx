@@ -144,8 +144,8 @@ const ApartmentNotesPage = () => {
                         key={f.key}
                         onClick={() => setFilterStatus(f.key)}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${filterStatus === f.key
-                                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
-                                : 'bg-white/60 text-gray-500 hover:bg-white'
+                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
+                            : 'bg-white/60 text-gray-500 hover:bg-white'
                             }`}
                     >
                         {f.label}
@@ -278,7 +278,7 @@ const ApartmentNotesPage = () => {
                     >
                         <motion.div
                             initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto"
+                            className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto mb-20 sm:mb-0"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-center mb-5">
