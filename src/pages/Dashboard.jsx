@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Calendar, Clock } from 'lucide-react';
+import { Heart, Calendar, Clock, Sparkles, Trash2 } from 'lucide-react';
 import TimeTogether from '../components/timer/TimeTogether';
 import WeatherWidget from '../components/ui/WeatherWidget';
 import UpcomingExamsWidget from '../components/career/UpcomingExamsWidget';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { photoDescriptions } from '../data/photoDescriptions';
 import { differenceInDays, parseISO } from 'date-fns';
 
@@ -19,13 +20,40 @@ const EVENT_ICONS = {
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [randomPhoto, setRandomPhoto] = useState(null);
     const [nextEvents, setNextEvents] = useState([]);
+    const [anniversaryPicks, setAnniversaryPicks] = useState([]);
+    const isAdmin = user?.email === 'ramaravachino00@gmail.com' || user?.user_metadata?.role === 'admin';
 
     useEffect(() => {
         fetchRandomPhoto();
         fetchNextEvent();
+        if (isAdmin) fetchAnniversaryPicks();
     }, []);
+
+    const fetchAnniversaryPicks = async () => {
+        try {
+            if (!supabase) return;
+            const { data } = await supabase
+                .from('anniversary_picks')
+                .select('*')
+                .order('created_at', { ascending: false });
+            if (data) setAnniversaryPicks(data);
+        } catch (e) {
+            console.error('Error fetching anniversary picks:', e);
+        }
+    };
+
+    const deleteAnniversaryPick = async (pickId) => {
+        try {
+            if (!supabase) return;
+            await supabase.from('anniversary_picks').delete().eq('id', pickId);
+            setAnniversaryPicks(prev => prev.filter(p => p.id !== pickId));
+        } catch (e) {
+            console.error('Error deleting pick:', e);
+        }
+    };
 
     const fetchRandomPhoto = async () => {
         try {
@@ -101,7 +129,7 @@ const Dashboard = () => {
                     animate={{ y: 0, opacity: 1 }}
                     className="text-4xl md:text-5xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-pink-600 font-bold drop-shadow-sm"
                 >
-                    Hola, Martina ❤️
+                    Hola, Marti ❤️
                 </motion.h1>
                 <motion.p
                     initial={{ y: 20, opacity: 0 }}
@@ -164,8 +192,114 @@ const Dashboard = () => {
                 </div>
             )}
 
+            {/* Admin: Anniversary Picks Widget */}
+            {isAdmin && anniversaryPicks.length > 0 && (() => {
+                // Group picks into pairs (restaurant + bar close in time)
+                const restaurants = anniversaryPicks.filter(p => p.category === 'restaurant');
+                const bars = anniversaryPicks.filter(p => p.category === 'bar');
+                const pairs = [];
+                const maxPairs = Math.max(restaurants.length, bars.length);
+                for (let i = 0; i < maxPairs; i++) {
+                    pairs.push({
+                        restaurant: restaurants[i] || null,
+                        bar: bars[i] || null,
+                    });
+                }
+
+                return (
+                    <div className="space-y-3">
+                        <h2 className="px-1 text-sm font-bold text-amber-600 uppercase tracking-widest">🎯 Martina eligió</h2>
+                        {pairs.map((pair, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="p-4 rounded-2xl border"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(212,175,55,0.1), rgba(247,231,206,0.05))',
+                                    borderColor: 'rgba(212,175,55,0.3)',
+                                }}
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                                        Opción {pairs.length - idx}
+                                    </p>
+                                    <button
+                                        onClick={() => {
+                                            if (pair.restaurant) deleteAnniversaryPick(pair.restaurant.id);
+                                            if (pair.bar) deleteAnniversaryPick(pair.bar.id);
+                                        }}
+                                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
+                                        title="Borrar esta opción"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    {pair.restaurant && (
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-lg">🍽️</span>
+                                            <div className="flex-1">
+                                                <p className="font-serif font-bold text-gray-800 text-sm">{pair.restaurant.winner_name}</p>
+                                                <p className="text-[10px] text-gray-400 uppercase">Restaurante</p>
+                                            </div>
+                                            {pair.restaurant.winner_instagram && (
+                                                <a href={pair.restaurant.winner_instagram} target="_blank" rel="noopener noreferrer" className="text-[10px] text-pink-400 hover:underline">IG</a>
+                                            )}
+                                        </div>
+                                    )}
+                                    {pair.bar && (
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-lg">🍸</span>
+                                            <div className="flex-1">
+                                                <p className="font-serif font-bold text-gray-800 text-sm">{pair.bar.winner_name}</p>
+                                                <p className="text-[10px] text-gray-400 uppercase">Bar</p>
+                                            </div>
+                                            {pair.bar.winner_instagram && (
+                                                <a href={pair.bar.winner_instagram} target="_blank" rel="noopener noreferrer" className="text-[10px] text-pink-400 hover:underline">IG</a>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                );
+            })()}
+
             {/* Quick Access Grid */}
             <div className="grid grid-cols-2 gap-4">
+                {/* Special Date Night Card */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.15, type: 'spring', stiffness: 100 }}
+                    whileHover={{ y: -5 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate('/date-night')}
+                    className="col-span-2 p-5 rounded-3xl cursor-pointer relative overflow-hidden"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(247,231,206,0.08))',
+                        border: '1px solid rgba(212,175,55,0.3)',
+                    }}
+                >
+                    {/* Shimmer */}
+                    <motion.div
+                        className="absolute inset-0 opacity-20 pointer-events-none"
+                        style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent)' }}
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                    />
+                    <div className="relative z-10 flex items-center gap-4">
+                        <div className="text-3xl">🥂</div>
+                        <div className="flex-1">
+                            <h3 className="font-serif font-bold text-lg" style={{ color: '#D4AF37' }}>Nuestro Aniversario</h3>
+                            <p className="text-xs mt-0.5" style={{ color: '#a89870' }}>1 año juntos — Elegí dónde festejamos 💕</p>
+                        </div>
+                        <Sparkles size={20} style={{ color: '#D4AF37' }} />
+                    </div>
+                </motion.div>
                 <QuickCard
                     emoji="📂"
                     title="Mi Espacio"
