@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Building2, Palette, PiggyBank, ClipboardCheck } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Building2, Palette, PiggyBank, ClipboardCheck, ListChecks } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const SECTIONS = [
@@ -64,6 +64,18 @@ const SECTIONS = [
         bg: 'bg-violet-50',
         table: 'home_moving_checklist',
         countLabel: (n) => `${n} tareas`,
+    },
+    {
+        id: 'daily',
+        title: 'Del Día a Día',
+        subtitle: 'Mandados y supermercado',
+        emoji: '📝',
+        icon: ListChecks,
+        path: '/our-home/daily',
+        gradient: 'from-fuchsia-400 to-pink-500',
+        bg: 'bg-fuchsia-50',
+        table: 'home_daily_tasks',
+        countLabel: (n) => `${n} pendientes`,
     },
 ];
 

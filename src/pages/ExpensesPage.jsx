@@ -9,6 +9,7 @@ import { es } from 'date-fns/locale';
 // Sub-components
 import ExpensesView from '../components/expenses/ExpensesView';
 import GoalsView from '../components/expenses/GoalsView';
+import BillsView from '../components/expenses/BillsView';
 import TransactionModal from '../components/expenses/TransactionModal';
 import CreateGoalModal from '../components/expenses/CreateGoalModal';
 import ContributionModal from '../components/expenses/ContributionModal';
@@ -199,6 +200,13 @@ const ExpensesPage = () => {
                     Gastos del Mes
                 </button>
                 <button
+                    onClick={() => setActiveTab('bills')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'bills' ? 'bg-romantic-100 text-romantic-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                >
+                    Cuentas Fijas
+                </button>
+                <button
                     onClick={() => setActiveTab('goals')}
                     className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'goals' ? 'bg-romantic-100 text-romantic-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
                         }`}
@@ -217,6 +225,8 @@ const ExpensesPage = () => {
                         onEdit={openEditModal}
                         onDelete={confirmDeleteTransaction}
                     />
+                ) : activeTab === 'bills' ? (
+                    <BillsView key="bills" />
                 ) : (
                     <GoalsView key="goals" />
                 )}

@@ -27,6 +27,7 @@ const ApartmentNotesPage = lazy(() => import('./pages/OurHome/ApartmentNotesPage
 const InspirationBoardPage = lazy(() => import('./pages/OurHome/InspirationBoardPage'));
 const MovingBudgetPage = lazy(() => import('./pages/OurHome/MovingBudgetPage'));
 const MovingChecklistPage = lazy(() => import('./pages/OurHome/MovingChecklistPage'));
+const DailyTasksPage = lazy(() => import('./pages/OurHome/DailyTasksPage'));
 const DateNightPage = lazy(() => import('./pages/DateNightPage'));
 
 // Loading Fallback Component
@@ -71,6 +72,7 @@ function App() {
                 <Route path="our-home/inspiration" element={<InspirationBoardPage />} />
                 <Route path="our-home/budget" element={<MovingBudgetPage />} />
                 <Route path="our-home/checklist" element={<MovingChecklistPage />} />
+                <Route path="our-home/daily" element={<DailyTasksPage />} />
               </Route>
             </Route>
           </Routes>

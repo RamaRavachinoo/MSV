@@ -1,34 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Calendar, Clock, Sparkles, Trash2 } from 'lucide-react';
+import { Heart, Sparkles, Trash2 } from 'lucide-react';
 import TimeTogether from '../components/timer/TimeTogether';
 import WeatherWidget from '../components/ui/WeatherWidget';
-import UpcomingExamsWidget from '../components/career/UpcomingExamsWidget';
+import TodayWidget from '../components/dashboard/TodayWidget';
+import NotificationOptIn from '../components/notifications/NotificationOptIn';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { photoDescriptions } from '../data/photoDescriptions';
-import { differenceInDays, parseISO } from 'date-fns';
-
-const EVENT_ICONS = {
-    date: '❤️',
-    anniversary: '📅',
-    trip: '✈️',
-    birthday: '🎂',
-    other: '📌'
-};
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [randomPhoto, setRandomPhoto] = useState(null);
-    const [nextEvents, setNextEvents] = useState([]);
     const [anniversaryPicks, setAnniversaryPicks] = useState([]);
     const isAdmin = user?.email === 'ramaravachino00@gmail.com' || user?.user_metadata?.role === 'admin';
 
     useEffect(() => {
         fetchRandomPhoto();
-        fetchNextEvent();
         if (isAdmin) fetchAnniversaryPicks();
     }, []);
 
@@ -76,42 +66,6 @@ const Dashboard = () => {
         }
     };
 
-    const fetchNextEvent = async () => {
-        try {
-            if (!supabase) return;
-            const { data } = await supabase.from('events').select('*');
-            if (!data || data.length === 0) return;
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const upcoming = data.map(e => {
-                const eDate = parseISO(e.event_date);
-
-                if (e.recurrence === 'yearly') {
-                    let next = new Date(today.getFullYear(), eDate.getMonth(), eDate.getDate());
-                    if (next < today) next.setFullYear(next.getFullYear() + 1);
-                    return { ...e, nextDate: next };
-                }
-                if (e.recurrence === 'monthly') {
-                    let next = new Date(today.getFullYear(), today.getMonth(), eDate.getDate());
-                    if (next < today) next.setMonth(next.getMonth() + 1);
-                    return { ...e, nextDate: next };
-                }
-                return { ...e, nextDate: eDate };
-            })
-                .filter(e => e.nextDate >= today)
-                .sort((a, b) => a.nextDate - b.nextDate);
-
-            if (upcoming.length > 0) {
-                // Take top 3 events
-                setNextEvents(upcoming.slice(0, 3));
-            }
-        } catch (e) {
-            console.error('Error fetching next event:', e);
-        }
-    };
-
     return (
         <div className="space-y-8 pt-4">
             {/* Hero Section */}
@@ -153,44 +107,11 @@ const Dashboard = () => {
             {/* Weather Widget */}
             <WeatherWidget />
 
-            {/* Upcoming Exams */}
-            <UpcomingExamsWidget />
+            {/* Push notification opt-in */}
+            <NotificationOptIn />
 
-            {/* Next Upcoming Events */}
-            {nextEvents.length > 0 && (
-                <div className="space-y-3">
-                    <h2 className="px-1 text-sm font-bold text-gray-400 uppercase tracking-widest">Próximos Eventos</h2>
-                    {nextEvents.map((event, index) => {
-                        const days = differenceInDays(event.nextDate, new Date());
-                        return (
-                            <motion.div
-                                key={event.id || index}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.35 + (index * 0.1) }}
-                                className="bg-gradient-to-r from-romantic-100 to-purple-100 p-4 rounded-2xl flex items-center gap-4 cursor-pointer border border-romantic-200/50 hover:shadow-md transition-shadow"
-                                onClick={() => navigate('/calendar')}
-                            >
-                                <div className="text-3xl">{EVENT_ICONS[event.type] || '📌'}</div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-serif font-bold text-gray-800 truncate">{event.title}</p>
-                                    <p className="text-xs text-romantic-500 font-medium">
-                                        {event.nextDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
-                                    </p>
-                                </div>
-                                <div className="flex flex-col items-center bg-white/60 backdrop-blur-sm px-3 py-2 rounded-xl min-w-[70px]">
-                                    <span className="text-xl font-bold text-romantic-600">
-                                        {days === 0 ? 'Hoy' : days}
-                                    </span>
-                                    {days !== 0 && (
-                                        <span className="text-[10px] text-gray-500 uppercase font-bold">{days === 1 ? 'día' : 'días'}</span>
-                                    )}
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            )}
+            {/* Today: exams, bills and events that need attention */}
+            <TodayWidget />
 
             {/* Admin: Anniversary Picks Widget */}
             {isAdmin && anniversaryPicks.length > 0 && (() => {
