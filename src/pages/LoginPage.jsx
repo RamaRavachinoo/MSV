@@ -13,7 +13,7 @@ const LoginPage = () => {
     const [error, setError] = useState('');
 
     const USERS = {
-        user: { email: 'martina@love.com', name: 'Martina', greeting: 'Hola mi amor ❤️' },
+        user: { email: 'martina@love.com', name: 'Marti', greeting: 'Hola mi amor ❤️' },
         admin: { email: 'ramaravachino00@gmail.com', name: 'Rama', greeting: 'Bienvenido Admin 🛠️' }
     };
 
@@ -43,7 +43,7 @@ const LoginPage = () => {
                 <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-6">
                     <Heart className="text-romantic-500 fill-romantic-500" size={48} />
                 </div>
-                <h1 className="text-4xl font-serif text-romantic-900 mb-2">Martina & Rama</h1>
+                <h1 className="text-4xl font-serif text-romantic-900 mb-2">Marti & Rama</h1>
                 <p className="text-gray-500">Nuestro espacio personal</p>
             </motion.div>
 
@@ -63,7 +63,7 @@ const LoginPage = () => {
                             className="w-full py-4 px-6 bg-romantic-500 text-white rounded-2xl shadow-lg shadow-romantic-200/50 flex items-center justify-between group"
                         >
                             <div className="flex flex-col items-start">
-                                <span className="font-bold text-lg">Soy Martina ❤️</span>
+                                <span className="font-bold text-lg">Soy Marti ❤️</span>
                                 <span className="text-romantic-100 text-xs text-left">Ingresar a mi regalo</span>
                             </div>
                             <span className="text-2xl group-hover:translate-x-1 transition-transform">→</span>
