@@ -10,11 +10,47 @@ const LoginPage = () => {
     const [selectedRole, setSelectedRole] = useState(null); // 'user' or 'admin'
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [martiLoading, setMartiLoading] = useState(false);
+    const [pin, setPin] = useState('');
+    const [shake, setShake] = useState(false);
     const [error, setError] = useState('');
 
     const USERS = {
         user: { email: 'martina@love.com', name: 'Marti', greeting: 'Hola mi amor ❤️' },
         admin: { email: 'ramaravachino00@gmail.com', name: 'Rama', greeting: 'Bienvenido Admin 🛠️' }
+    };
+
+    const MARTI_PASSWORD = '31052025';
+    const PIN_COMBO = '3105';
+    const PIN_DIGITS = ['1', '2', '3', '4', '5', '0'];
+
+    const handleMartiLogin = async () => {
+        setMartiLoading(true);
+        setError('');
+        try {
+            await loginWithPassword(USERS.user.email, MARTI_PASSWORD);
+            navigate('/');
+        } catch (err) {
+            console.error(err);
+            setError('No se pudo entrar automáticamente.');
+            setMartiLoading(false);
+        }
+    };
+
+    const handlePinPress = (digit) => {
+        if (martiLoading) return;
+        const next = pin + digit;
+        setPin(next);
+        if (next.length < 4) return;
+        if (next === PIN_COMBO) {
+            handleMartiLogin();
+        } else {
+            setShake(true);
+            setTimeout(() => {
+                setPin('');
+                setShake(false);
+            }, 500);
+        }
     };
 
     const handleLogin = async (e) => {
@@ -87,6 +123,75 @@ const LoginPage = () => {
                             <Key size={16} />
                             <span>Soy Rama (Admin)</span>
                         </motion.button>
+                    </motion.div>
+                ) : selectedRole === 'user' ? (
+                    <motion.div
+                        key="pin"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-xl"
+                    >
+                        <h2 className="text-2xl font-serif text-romantic-800 mb-6 text-center">
+                            {USERS.user.greeting}
+                        </h2>
+
+                        <div className="flex justify-center gap-3 mb-6">
+                            {[0, 1, 2, 3].map(i => (
+                                <div
+                                    key={i}
+                                    className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                                        pin.length > i
+                                            ? 'bg-romantic-500 border-romantic-500'
+                                            : 'border-gray-300'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+
+                        <motion.div
+                            animate={{ x: shake ? [0, -8, 8, -8, 8, 0] : 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="grid grid-cols-3 gap-3 mb-6"
+                        >
+                            {PIN_DIGITS.map(d => (
+                                <button
+                                    key={d}
+                                    type="button"
+                                    onClick={() => handlePinPress(d)}
+                                    disabled={martiLoading}
+                                    className="py-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-xl font-semibold text-gray-700 transition-colors disabled:opacity-50"
+                                >
+                                    {d}
+                                </button>
+                            ))}
+                        </motion.div>
+
+                        {error && (
+                            <p className="text-red-500 text-sm mb-4 text-center bg-red-50 p-2 rounded-lg">{error}</p>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSelectedRole(null);
+                                    setPin('');
+                                    setError('');
+                                }}
+                                className="px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
+                            >
+                                Volver
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPin(p => p.slice(0, -1))}
+                                disabled={!pin || martiLoading}
+                                className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+                            >
+                                {martiLoading ? <Loader2 className="animate-spin" size={20} /> : 'Borrar'}
+                            </button>
+                        </div>
                     </motion.div>
                 ) : (
                     <motion.form

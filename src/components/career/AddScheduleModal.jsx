@@ -14,7 +14,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, onUpdate, editingEntry, sub
     const [form, setForm] = useState({
         subject_code: '',
         subject_name: '',
-        day_of_week: 'Lunes',
+        days: ['Lunes'],
         start_time: '08:00',
         end_time: '10:00',
         color: SCHEDULE_COLORS[0].hex,
@@ -26,7 +26,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, onUpdate, editingEntry, sub
             setForm({
                 subject_code: editingEntry.subject_code || '',
                 subject_name: editingEntry.subject_name || '',
-                day_of_week: editingEntry.day_of_week || 'Lunes',
+                days: editingEntry.day_of_week ? [editingEntry.day_of_week] : ['Lunes'],
                 start_time: editingEntry.start_time?.slice(0, 5) || '08:00',
                 end_time: editingEntry.end_time?.slice(0, 5) || '10:00',
                 color: editingEntry.color || SCHEDULE_COLORS[0].hex,
@@ -36,7 +36,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, onUpdate, editingEntry, sub
             setForm({
                 subject_code: '',
                 subject_name: '',
-                day_of_week: 'Lunes',
+                days: ['Lunes'],
                 start_time: '08:00',
                 end_time: '10:00',
                 color: SCHEDULE_COLORS[0].hex,
@@ -44,6 +44,19 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, onUpdate, editingEntry, sub
             });
         }
     }, [editingEntry, isOpen]);
+
+    const handleDayToggle = (day) => {
+        if (editingEntry) {
+            setForm(prev => ({ ...prev, days: [day] }));
+            return;
+        }
+        setForm(prev => ({
+            ...prev,
+            days: prev.days.includes(day)
+                ? prev.days.filter(d => d !== day)
+                : [...prev.days, day],
+        }));
+    };
 
     const handleSubjectSelect = (code) => {
         const subject = ALL_SUBJECTS.find(s => s.code === code);
@@ -56,9 +69,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, onUpdate, editingEntry, sub
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.subject_name || !form.start_time || !form.end_time) return;
+        if (!form.subject_name || !form.start_time || !form.end_time || form.days.length === 0) return;
         if (editingEntry) {
-            onUpdate(editingEntry.id, form);
+            onUpdate(editingEntry.id, { ...form, day_of_week: form.days[0] });
         } else {
             onSave(form);
         }
@@ -125,15 +138,17 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, onUpdate, editingEntry, sub
 
                     {/* Day */}
                     <div>
-                        <label className="text-sm font-semibold text-gray-700 mb-2 block">Día</label>
+                        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Día{!editingEntry && <span className="font-normal text-gray-400"> (podés elegir varios)</span>}
+                        </label>
                         <div className="flex flex-wrap gap-2">
                             {SCHEDULE_DAYS.map(day => (
                                 <button
                                     key={day}
                                     type="button"
-                                    onClick={() => setForm(prev => ({ ...prev, day_of_week: day }))}
+                                    onClick={() => handleDayToggle(day)}
                                     className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                                        form.day_of_week === day
+                                        form.days.includes(day)
                                             ? 'bg-romantic-500 text-white shadow-sm'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}

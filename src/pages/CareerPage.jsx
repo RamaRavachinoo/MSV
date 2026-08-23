@@ -178,16 +178,18 @@ const CareerPage = () => {
     const handleAddSchedule = async (entry) => {
         try {
             if (!supabase) return;
-            const { error } = await supabase.from('career_schedule').insert([{
+            const days = entry.days?.length > 0 ? entry.days : [entry.day_of_week];
+            const rows = days.map(day => ({
                 subject_code: entry.subject_code,
                 subject_name: entry.subject_name,
-                day_of_week: entry.day_of_week,
+                day_of_week: day,
                 start_time: entry.start_time,
                 end_time: entry.end_time,
                 color: entry.color,
                 room: entry.room || null,
                 user_id: user?.id,
-            }]);
+            }));
+            const { error } = await supabase.from('career_schedule').insert(rows);
             if (error) throw error;
             await fetchSchedule();
             setIsScheduleModalOpen(false);
